@@ -19,3 +19,9 @@ Sistema de gerenciamento de produtos esportivos desenvolvido para fins acadêmic
 O sistema será construído incrementalmente durante as aulas da disciplina.
 
 Cada etapa será registrada no Git por meio de commits e tags, permitindo acompanhar a evolução e recuperar estados anteriores do projeto.
+
+## Tema
+
+API didática para gerenciamento de produtos esportivos, organizados por grupos de produto.
+
+O sistema permitirá o gerenciamento de grupos e produtos esportivos, incluindo informações como código, descrição, saldo em estoque e valor unitário.
