@@ -42,7 +42,8 @@ class ProdutoServiceTest {
 
         Produto cadastrado = service.cadastrar(
             produto,
-            grupo.getId());
+            grupo.getId(),
+            null);
 
         assertEquals("7891000000040",
             cadastrado.getCodigoBarras());
@@ -63,7 +64,10 @@ class ProdutoServiceTest {
             new BigDecimal("199.90"),
             LocalDate.of(2026, 3, 10));
 
-        service.cadastrar(primeiro, grupo.getId());
+        service.cadastrar(
+            primeiro,
+            grupo.getId(),
+            null);
 
         Produto segundo = new Produto(
             "7891000000057",
@@ -76,7 +80,8 @@ class ProdutoServiceTest {
             RecursoDuplicadoException.class,
             () -> service.cadastrar(
                 segundo,
-                grupo.getId()));
+                grupo.getId(),
+                null));
     }
 
     @Test
@@ -90,6 +95,9 @@ class ProdutoServiceTest {
 
         assertThrows(
             RecursoNaoEncontradoException.class,
-            () -> service.cadastrar(produto, 999999L));
+            () -> service.cadastrar(
+                produto,
+                999999L,
+                null));
     }
 }

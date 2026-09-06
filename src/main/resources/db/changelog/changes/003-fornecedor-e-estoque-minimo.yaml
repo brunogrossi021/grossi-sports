@@ -1,0 +1,172 @@
+databaseChangeLog:
+
+  - changeSet:
+      id: 003-01-create-fornecedor
+      author: curso-spring-2026
+      comment: Cria a tabela de fornecedores.
+      changes:
+        - createTable:
+            tableName: fornecedor
+            columns:
+              - column:
+                  name: id
+                  type: BIGINT
+                  autoIncrement: true
+                  constraints:
+                    primaryKey: true
+                    primaryKeyName: pk_fornecedor
+                    nullable: false
+
+              - column:
+                  name: razao_social
+                  type: VARCHAR(150)
+                  constraints:
+                    nullable: false
+
+              - column:
+                  name: cnpj
+                  type: VARCHAR(14)
+                  constraints:
+                    nullable: false
+
+              - column:
+                  name: status
+                  type: VARCHAR(20)
+                  constraints:
+                    nullable: false
+
+      rollback:
+        - dropTable:
+            tableName: fornecedor
+
+  - changeSet:
+      id: 003-02-unique-cnpj-fornecedor
+      author: curso-spring-2026
+      changes:
+        - addUniqueConstraint:
+            tableName: fornecedor
+            columnNames: cnpj
+            constraintName: uk_fornecedor_cnpj
+
+      rollback:
+        - dropUniqueConstraint:
+            tableName: fornecedor
+            constraintName: uk_fornecedor_cnpj
+
+  - changeSet:
+      id: 003-03-check-status-fornecedor
+      author: curso-spring-2026
+      changes:
+        - sql:
+            sql: >
+              ALTER TABLE fornecedor
+              ADD CONSTRAINT ck_fornecedor_status
+              CHECK (status IN ('ATIVO', 'INATIVO'))
+
+      rollback:
+        - sql:
+            sql: >
+              ALTER TABLE fornecedor
+              DROP CONSTRAINT ck_fornecedor_status
+
+  - changeSet:
+      id: 003-04-add-estoque-minimo-produto
+      author: curso-spring-2026
+      comment: Adiciona estoque mínimo aos produtos existentes.
+      changes:
+        - addColumn:
+            tableName: produto
+            columns:
+              - column:
+                  name: estoque_minimo
+                  type: NUMERIC(18,3)
+
+      rollback:
+        - dropColumn:
+            tableName: produto
+            columnName: estoque_minimo
+
+  - changeSet:
+      id: 003-05-fill-estoque-minimo-produto
+      author: curso-spring-2026
+      comment: Preenche o estoque mínimo dos produtos existentes com zero.
+      changes:
+        - sql:
+            sql: >
+              UPDATE produto
+              SET estoque_minimo = 0
+              WHERE estoque_minimo IS NULL
+
+      rollback:
+        - sql:
+            sql: >
+              UPDATE produto
+              SET estoque_minimo = NULL
+              WHERE estoque_minimo = 0
+
+  - changeSet:
+      id: 003-06-not-null-estoque-minimo-produto
+      author: curso-spring-2026
+      comment: Torna o estoque mínimo obrigatório.
+      changes:
+        - addNotNullConstraint:
+            tableName: produto
+            columnName: estoque_minimo
+            columnDataType: NUMERIC(18,3)
+
+      rollback:
+        - dropNotNullConstraint:
+            tableName: produto
+            columnName: estoque_minimo
+            columnDataType: NUMERIC(18,3)
+
+  - changeSet:
+      id: 003-07-check-estoque-minimo-produto
+      author: curso-spring-2026
+      changes:
+        - sql:
+            sql: >
+              ALTER TABLE produto
+              ADD CONSTRAINT ck_produto_estoque_minimo
+              CHECK (estoque_minimo >= 0)
+
+      rollback:
+        - sql:
+            sql: >
+              ALTER TABLE produto
+              DROP CONSTRAINT ck_produto_estoque_minimo
+
+  - changeSet:
+      id: 003-08-add-fornecedor-produto
+      author: curso-spring-2026
+      comment: Adiciona fornecedor opcional ao produto.
+      changes:
+        - addColumn:
+            tableName: produto
+            columns:
+              - column:
+                  name: fornecedor_id
+                  type: BIGINT
+
+      rollback:
+        - dropColumn:
+            tableName: produto
+            columnName: fornecedor_id
+
+  - changeSet:
+      id: 003-09-foreign-key-fornecedor
+      author: curso-spring-2026
+      comment: Cria a associação entre produto e fornecedor.
+      changes:
+        - addForeignKeyConstraint:
+            baseTableName: produto
+            baseColumnNames: fornecedor_id
+            referencedTableName: fornecedor
+            referencedColumnNames: id
+            constraintName: fk_produto_fornecedor
+            onDelete: RESTRICT
+
+      rollback:
+        - dropForeignKeyConstraint:
+            baseTableName: produto
+            constraintName: fk_produto_fornecedor

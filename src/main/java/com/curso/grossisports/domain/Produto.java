@@ -57,6 +57,13 @@ public class Produto {
     private BigDecimal valorUnitario;
 
     @Column(
+        name = "estoque_minimo",
+        nullable = false,
+        precision = 18,
+        scale = 3)
+    private BigDecimal estoqueMinimo;
+
+    @Column(
         name = "data_cadastro",
         nullable = false)
     private LocalDate dataCadastro;
@@ -75,6 +82,13 @@ public class Produto {
             name = "fk_produto_grupo_produto"))
     private GrupoProduto grupo;
 
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(
+        name = "fornecedor_id",
+        foreignKey = @ForeignKey(
+            name = "fk_produto_fornecedor"))
+    private Fornecedor fornecedor;
+
     protected Produto() {
     }
 
@@ -83,6 +97,23 @@ public class Produto {
         String descricao,
         BigDecimal saldoEstoque,
         BigDecimal valorUnitario,
+        LocalDate dataCadastro) {
+
+        this(
+            codigoBarras,
+            descricao,
+            saldoEstoque,
+            valorUnitario,
+            BigDecimal.ZERO,
+            dataCadastro);
+    }
+
+    public Produto(
+        String codigoBarras,
+        String descricao,
+        BigDecimal saldoEstoque,
+        BigDecimal valorUnitario,
+        BigDecimal estoqueMinimo,
         LocalDate dataCadastro) {
 
         this.codigoBarras = validarTextoObrigatorio(
@@ -100,6 +131,10 @@ public class Produto {
         this.valorUnitario = validarNaoNegativo(
             valorUnitario,
             "Valor unitário não pode ser negativo");
+
+        this.estoqueMinimo = validarNaoNegativo(
+            estoqueMinimo,
+            "Estoque mínimo não pode ser negativo");
 
         this.dataCadastro = Objects.requireNonNull(
             dataCadastro,
@@ -168,6 +203,10 @@ public class Produto {
         this.grupo = grupo;
     }
 
+    public void associarFornecedor(Fornecedor fornecedor) {
+        this.fornecedor = fornecedor;
+    }
+
     public Long getId() {
         return id;
     }
@@ -188,6 +227,10 @@ public class Produto {
         return valorUnitario;
     }
 
+    public BigDecimal getEstoqueMinimo() {
+        return estoqueMinimo;
+    }
+
     public LocalDate getDataCadastro() {
         return dataCadastro;
     }
@@ -198,6 +241,10 @@ public class Produto {
 
     public GrupoProduto getGrupo() {
         return grupo;
+    }
+
+    public Fornecedor getFornecedor() {
+        return fornecedor;
     }
 
     private static String validarTextoObrigatorio(
