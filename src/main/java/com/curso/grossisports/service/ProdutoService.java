@@ -11,6 +11,8 @@ import com.curso.grossisports.repository.ProdutoRepository;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.util.List;
+
 @Service
 public class ProdutoService {
 
@@ -55,5 +57,17 @@ public class ProdutoService {
         }
 
         return produtoRepository.save(produto);
+    }
+
+    @Transactional(readOnly = true)
+    public Produto buscarPorId(Long id) {
+        return produtoRepository.findById(id)
+            .orElseThrow(() -> new RecursoNaoEncontradoException(
+                "Produto não encontrado"));
+    }
+
+    @Transactional(readOnly = true)
+    public List<Produto> listar() {
+        return produtoRepository.findAll();
     }
 }

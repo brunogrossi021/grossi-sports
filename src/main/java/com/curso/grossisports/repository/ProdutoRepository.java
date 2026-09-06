@@ -2,13 +2,13 @@ package com.curso.grossisports.repository;
 
 import com.curso.grossisports.domain.Produto;
 import com.curso.grossisports.domain.Status;
+import org.springframework.data.jpa.repository.EntityGraph;
 import org.springframework.data.jpa.repository.JpaRepository;
 
 import java.util.List;
 import java.util.Optional;
 
-public interface ProdutoRepository
-    extends JpaRepository<Produto, Long> {
+public interface ProdutoRepository extends JpaRepository<Produto, Long> {
 
     Optional<Produto> findByCodigoBarras(String codigoBarras);
 
@@ -17,4 +17,12 @@ public interface ProdutoRepository
     List<Produto> findByGrupoId(Long grupoId);
 
     List<Produto> findByStatus(Status status);
+
+    @Override
+    @EntityGraph(attributePaths = {"grupo", "fornecedor"})
+    Optional<Produto> findById(Long id);
+
+    @Override
+    @EntityGraph(attributePaths = {"grupo", "fornecedor"})
+    List<Produto> findAll();
 }
