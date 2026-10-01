@@ -10,6 +10,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.net.URI;
+import java.util.List;
 
 @RestController
 @RequestMapping("/api/fornecedores")
@@ -38,8 +39,15 @@ public class FornecedorController {
         URI location = URI.create(
             "/api/fornecedores/" + cadastrado.getId());
 
-        return ResponseEntity
-            .created(location)
+        return ResponseEntity.created(location)
             .body(mapper.toResponse(cadastrado));
+    }
+
+    @GetMapping
+    public List<FornecedorResponse> listar() {
+        return service.listar()
+            .stream()
+            .map(mapper::toResponse)
+            .toList();
     }
 }

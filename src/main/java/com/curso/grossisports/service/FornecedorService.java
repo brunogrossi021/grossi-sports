@@ -7,6 +7,8 @@ import com.curso.grossisports.repository.FornecedorRepository;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.util.List;
+
 @Service
 public class FornecedorService {
 
@@ -35,5 +37,10 @@ public class FornecedorService {
         return repository.findById(id)
             .orElseThrow(() -> new RecursoNaoEncontradoException(
                 "Fornecedor não encontrado"));
+    }
+
+    @Transactional(readOnly = true)
+    public List<Fornecedor> listar() {
+        return repository.findAll();
     }
 }
