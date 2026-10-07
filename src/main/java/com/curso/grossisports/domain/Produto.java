@@ -182,6 +182,37 @@ public class Produto {
             "Valor unitário não pode ser negativo");
     }
 
+    public void alterarEstoqueMinimo(BigDecimal novoEstoqueMinimo) {
+        this.estoqueMinimo = validarNaoNegativo(
+            novoEstoqueMinimo,
+            "Estoque mínimo não pode ser negativo");
+    }
+
+    public void alterarGrupo(GrupoProduto novoGrupo) {
+        Objects.requireNonNull(
+            novoGrupo,
+            "Grupo de produto é obrigatório");
+
+        if (this.grupo == novoGrupo) {
+            return;
+        }
+
+        novoGrupo.validarInclusao(this);
+
+        GrupoProduto grupoAnterior = this.grupo;
+
+        if (grupoAnterior != null) {
+            grupoAnterior.removerInternamente(this);
+        }
+
+        this.grupo = novoGrupo;
+        novoGrupo.adicionarInternamente(this);
+    }
+
+    public void alterarFornecedor(Fornecedor novoFornecedor) {
+        this.fornecedor = novoFornecedor;
+    }
+
     public void ativar() {
         this.status = Status.ATIVO;
     }

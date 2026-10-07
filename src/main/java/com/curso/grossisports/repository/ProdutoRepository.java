@@ -2,6 +2,8 @@ package com.curso.grossisports.repository;
 
 import com.curso.grossisports.domain.Produto;
 import com.curso.grossisports.domain.Status;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.EntityGraph;
 import org.springframework.data.jpa.repository.JpaRepository;
 
@@ -25,4 +27,7 @@ public interface ProdutoRepository extends JpaRepository<Produto, Long> {
     @Override
     @EntityGraph(attributePaths = {"grupo", "fornecedor"})
     List<Produto> findAll();
+
+    @EntityGraph(attributePaths = {"grupo", "fornecedor"})
+    Page<Produto> findAll(Pageable pageable);
 }

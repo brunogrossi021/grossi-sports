@@ -1,0 +1,12 @@
+databaseChangeLog:
+  - changeSet:
+      id: 004-grupo-produto-regras
+      author: grossi-sports
+      changes:
+        - sql:
+            sql: >
+              CREATE UNIQUE INDEX ux_grupo_produto_nome_normalizado
+              ON grupo_produto (LOWER(BTRIM(nome)))
+      rollback:
+        - sql:
+            sql: DROP INDEX IF EXISTS ux_grupo_produto_nome_normalizado;

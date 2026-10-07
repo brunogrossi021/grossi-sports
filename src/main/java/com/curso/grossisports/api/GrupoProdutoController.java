@@ -1,7 +1,9 @@
+
 package com.curso.grossisports.api;
 
 import com.curso.grossisports.api.dto.GrupoProdutoRequest;
 import com.curso.grossisports.api.dto.GrupoProdutoResponse;
+import com.curso.grossisports.api.dto.PageResponse;
 import com.curso.grossisports.api.mapper.GrupoProdutoMapper;
 import com.curso.grossisports.domain.GrupoProduto;
 import com.curso.grossisports.service.GrupoProdutoService;
@@ -10,7 +12,6 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.net.URI;
-import java.util.List;
 
 @RestController
 @RequestMapping("/api/grupos-produtos")
@@ -50,11 +51,23 @@ public class GrupoProdutoController {
     }
 
     @GetMapping
-    public List<GrupoProdutoResponse> listar() {
+    public PageResponse<GrupoProdutoResponse> listar(
+        @RequestParam(defaultValue = "0") int pagina,
+        @RequestParam(defaultValue = "10") int tamanho,
+        @RequestParam(defaultValue = "nome") String ordenarPor,
+        @RequestParam(defaultValue = "asc") String direcao) {
 
-        return service.listar()
-            .stream()
-            .map(mapper::toResponse)
-            .toList();
+        PageResponse<GrupoProduto> resultado =
+            service.listarPaginado(pagina, tamanho, ordenarPor, direcao);
+
+        return new PageResponse<>(
+            resultado.content().stream()
+                .map(mapper::toResponse)
+                .toList(),
+            resultado.page(),
+            resultado.size(),
+            resultado.totalElements(),
+            resultado.totalPages()
+        );
     }
 }
