@@ -1,0 +1,5 @@
+$kind: http-request
+description: ""
+url: http://localhost:8080/api/produtos/1
+method: GET
+order: 1790111024562

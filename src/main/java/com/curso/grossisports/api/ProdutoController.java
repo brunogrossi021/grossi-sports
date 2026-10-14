@@ -1,6 +1,6 @@
-
 package com.curso.grossisports.api;
 
+import com.curso.grossisports.api.dto.MovimentacaoEstoqueRequest;
 import com.curso.grossisports.api.dto.PageResponse;
 import com.curso.grossisports.api.dto.ProdutoRequest;
 import com.curso.grossisports.api.dto.ProdutoResponse;
@@ -73,5 +73,27 @@ public class ProdutoController {
             resultado.totalElements(),
             resultado.totalPages()
         );
+    }
+
+    @PostMapping("/{id}/estoque/entradas")
+    public ProdutoResponse receberEstoque(
+        @PathVariable Long id,
+        @Valid @RequestBody MovimentacaoEstoqueRequest request) {
+
+        Produto produto = service.receberEstoque(
+            id, request.quantidade());
+
+        return mapper.toResponse(produto);
+    }
+
+    @PostMapping("/{id}/estoque/saidas")
+    public ProdutoResponse retirarEstoque(
+        @PathVariable Long id,
+        @Valid @RequestBody MovimentacaoEstoqueRequest request) {
+
+        Produto produto = service.retirarEstoque(
+            id, request.quantidade());
+
+        return mapper.toResponse(produto);
     }
 }

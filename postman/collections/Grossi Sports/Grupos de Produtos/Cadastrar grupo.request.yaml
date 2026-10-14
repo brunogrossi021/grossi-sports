@@ -1,0 +1,8 @@
+$kind: http-request
+description: ""
+url: http://localhost:8080/api/grupos-produtos
+method: POST
+body:
+  type: json
+  content: "{\r\n  \"nome\": \"Bola3\"\r\n}"
+order: 1790110823422

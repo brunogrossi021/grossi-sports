@@ -1,0 +1,6 @@
+$kind: http-request
+name: Consultar saúde da API
+description: ""
+url: http://localhost:8080/api/health
+method: GET
+order: 1790110737329

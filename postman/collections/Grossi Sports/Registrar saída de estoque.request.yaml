@@ -1,0 +1,12 @@
+﻿$kind: http-request
+name: Registrar saída de estoque
+description: "Registra uma saída de estoque para um produto."
+url: http://localhost:8080/api/produtos/1/estoque/saidas
+method: POST
+body:
+  type: json
+  content: |
+    {
+      "quantidade": 2.500
+    }
+order: 4485315013066261

@@ -1,4 +1,3 @@
-
 package com.curso.grossisports.api;
 
 import com.curso.grossisports.api.dto.ApiError;
@@ -96,7 +95,7 @@ public class ApiExceptionHandler {
 
         return criarResposta(
             HttpStatus.BAD_REQUEST,
-            "Parâmetros de consulta inválidos",
+            exception.getMessage(),
             request.getRequestURI(),
             null);
     }

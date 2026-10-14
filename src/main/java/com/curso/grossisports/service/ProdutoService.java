@@ -1,4 +1,3 @@
-
 package com.curso.grossisports.service;
 
 import com.curso.grossisports.api.dto.PageResponse;
@@ -17,6 +16,7 @@ import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.math.BigDecimal;
 import java.util.List;
 import java.util.Set;
 
@@ -131,5 +131,19 @@ public class ProdutoService {
             resultado.getTotalElements(),
             resultado.getTotalPages()
         );
+    }
+
+    @Transactional
+    public Produto receberEstoque(Long id, BigDecimal quantidade) {
+        Produto produto = buscarPorId(id);
+        produto.receberEstoque(quantidade);
+        return produtoRepository.save(produto);
+    }
+
+    @Transactional
+    public Produto retirarEstoque(Long id, BigDecimal quantidade) {
+        Produto produto = buscarPorId(id);
+        produto.retirarEstoque(quantidade);
+        return produtoRepository.save(produto);
     }
 }

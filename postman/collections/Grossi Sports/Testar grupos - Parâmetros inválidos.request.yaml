@@ -1,0 +1,7 @@
+$kind: http-request
+url: http://localhost:8080/api/grupos-produtos?pagina=-1&tamanho=10
+method: GET
+queryParams:
+  tamanho: "10"
+  pagina: "-1"
+order: 4454206025746148

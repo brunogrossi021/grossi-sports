@@ -1,0 +1,9 @@
+$kind: http-request
+url: http://localhost:8080/api/grupos-produtos?pagina=0&tamanho=10&ordenarPor=nome&direcao=asc
+method: GET
+queryParams:
+  pagina: "0"
+  tamanho: "10"
+  ordenarPor: nome
+  direcao: asc
+order: 3966923448672922

@@ -1,0 +1,14 @@
+$kind: http-request
+description: ""
+url: http://localhost:8080/api/fornecedores
+method: POST
+body:
+  type: json
+  content: "{\r
+
+    \  \"razaoSocial\": \"Fornecedor Esportivo LTDA\",\r
+
+    \  \"cnpj\": \"12345678000197\"\r
+
+    }"
+order: 1790111513551

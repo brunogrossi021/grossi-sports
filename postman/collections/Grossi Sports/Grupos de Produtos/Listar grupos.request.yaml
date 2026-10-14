@@ -1,0 +1,4 @@
+$kind: http-request
+url: http://localhost:8080/api/grupos-produtos
+method: GET
+order: 414861249249312
