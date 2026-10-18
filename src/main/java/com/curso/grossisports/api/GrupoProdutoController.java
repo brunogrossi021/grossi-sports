@@ -42,6 +42,37 @@ public class GrupoProdutoController {
             .body(mapper.toResponse(cadastrado));
     }
 
+    @PutMapping("/{id}")
+    public GrupoProdutoResponse editar(
+        @PathVariable Long id,
+        @Valid @RequestBody GrupoProdutoRequest request) {
+
+        return mapper.toResponse(
+            service.editar(id, request.nome()));
+    }
+
+    @PatchMapping("/{id}/ativar")
+    public GrupoProdutoResponse ativar(
+        @PathVariable Long id) {
+
+        return mapper.toResponse(
+            service.ativar(id));
+    }
+
+    @PatchMapping("/{id}/inativar")
+    public GrupoProdutoResponse inativar(
+        @PathVariable Long id) {
+
+        return mapper.toResponse(
+            service.inativar(id));
+    }
+
+    @DeleteMapping("/{id}")
+    public ResponseEntity<Void> excluir(@PathVariable Long id) {
+        service.excluir(id);
+        return ResponseEntity.noContent().build();
+    }
+
     @GetMapping("/{id}")
     public GrupoProdutoResponse buscarPorId(
         @PathVariable Long id) {

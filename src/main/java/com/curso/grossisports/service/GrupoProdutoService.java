@@ -1,11 +1,12 @@
-
 package com.curso.grossisports.service;
 
 import com.curso.grossisports.api.dto.PageResponse;
 import com.curso.grossisports.domain.GrupoProduto;
+import com.curso.grossisports.exception.GrupoProdutoComProdutosException;
 import com.curso.grossisports.exception.RecursoDuplicadoException;
 import com.curso.grossisports.exception.RecursoNaoEncontradoException;
 import com.curso.grossisports.repository.GrupoProdutoRepository;
+import com.curso.grossisports.repository.ProdutoRepository;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
@@ -23,9 +24,13 @@ public class GrupoProdutoService {
         Set.of("id", "nome", "status");
 
     private final GrupoProdutoRepository repository;
+    private final ProdutoRepository produtoRepository;
 
-    public GrupoProdutoService(GrupoProdutoRepository repository) {
+    public GrupoProdutoService(
+        GrupoProdutoRepository repository,
+        ProdutoRepository produtoRepository) {
         this.repository = repository;
+        this.produtoRepository = produtoRepository;
     }
 
     @Transactional
@@ -36,6 +41,48 @@ public class GrupoProdutoService {
         }
 
         return repository.save(new GrupoProduto(nome));
+    }
+
+    @Transactional
+    public GrupoProduto editar(Long id, String nome) {
+        GrupoProduto grupo = buscarPorId(id);
+
+        repository.findByNomeIgnoreCase(nome)
+            .filter(outro -> !outro.getId().equals(id))
+            .ifPresent(outro -> {
+                throw new RecursoDuplicadoException(
+                    "Nome do grupo já cadastrado");
+            });
+
+        grupo.alterarNome(nome);
+
+        return repository.save(grupo);
+    }
+
+    @Transactional
+    public GrupoProduto ativar(Long id) {
+        GrupoProduto grupo = buscarPorId(id);
+        grupo.ativar();
+        return repository.save(grupo);
+    }
+
+    @Transactional
+    public GrupoProduto inativar(Long id) {
+        GrupoProduto grupo = buscarPorId(id);
+        grupo.inativar();
+        return repository.save(grupo);
+    }
+
+    @Transactional
+    public void excluir(Long id) {
+        GrupoProduto grupo = buscarPorId(id);
+
+        if (produtoRepository.existsByGrupoId(id)) {
+            throw new GrupoProdutoComProdutosException(
+                "Não é possível excluir um grupo que possui produtos vinculados");
+        }
+
+        repository.delete(grupo);
     }
 
     @Transactional(readOnly = true)

@@ -1,6 +1,7 @@
 package com.curso.grossisports.api;
 
 import com.curso.grossisports.api.dto.ApiError;
+import com.curso.grossisports.exception.GrupoProdutoComProdutosException;
 import com.curso.grossisports.exception.RecursoDuplicadoException;
 import com.curso.grossisports.exception.RecursoNaoEncontradoException;
 import jakarta.servlet.http.HttpServletRequest;
@@ -34,6 +35,18 @@ public class ApiExceptionHandler {
     @ExceptionHandler(RecursoDuplicadoException.class)
     public ResponseEntity<ApiError> tratarDuplicado(
         RecursoDuplicadoException exception,
+        HttpServletRequest request) {
+
+        return criarResposta(
+            HttpStatus.CONFLICT,
+            exception.getMessage(),
+            request.getRequestURI(),
+            null);
+    }
+
+    @ExceptionHandler(GrupoProdutoComProdutosException.class)
+    public ResponseEntity<ApiError> tratarGrupoComProdutos(
+        GrupoProdutoComProdutosException exception,
         HttpServletRequest request) {
 
         return criarResposta(

@@ -1,3 +1,4 @@
+
 package com.curso.grossisports.repository;
 
 import com.curso.grossisports.domain.Produto;
@@ -17,6 +18,8 @@ public interface ProdutoRepository extends JpaRepository<Produto, Long> {
     boolean existsByCodigoBarras(String codigoBarras);
 
     List<Produto> findByGrupoId(Long grupoId);
+
+    boolean existsByGrupoId(Long grupoId);
 
     List<Produto> findByStatus(Status status);
 
