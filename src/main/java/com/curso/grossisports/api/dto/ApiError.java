@@ -10,11 +10,13 @@ import java.util.Map;
     example = """
         {
           "timestamp": "2026-10-22T18:30:00Z",
-          "status": 404,
-          "error": "Not Found",
-          "message": "Produto não encontrado",
-          "path": "/api/produtos/999",
-          "fields": {}
+          "status": 400,
+          "error": "Bad Request",
+          "message": "Dados inválidos",
+          "path": "/api/produtos",
+          "fields": {
+            "descricao": "Descrição é obrigatória"
+          }
         }
         """
 )
