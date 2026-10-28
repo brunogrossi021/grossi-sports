@@ -13,6 +13,7 @@ import com.curso.grossisports.service.ProdutoService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.media.Content;
+import io.swagger.v3.oas.annotations.media.ExampleObject;
 import io.swagger.v3.oas.annotations.media.Schema;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
@@ -69,13 +70,63 @@ public class ProdutoController {
         """
     )
     @ApiResponses({
-        @ApiResponse(responseCode = "200", description = "Produto atualizado com sucesso"),
-        @ApiResponse(responseCode = "400", description = "Dados inválidos",
-            content = @Content(schema = @Schema(implementation = ApiError.class))),
-        @ApiResponse(responseCode = "404", description = "Produto, grupo ou fornecedor não encontrado",
-            content = @Content(schema = @Schema(implementation = ApiError.class))),
-        @ApiResponse(responseCode = "409", description = "Código de barras já cadastrado",
-            content = @Content(schema = @Schema(implementation = ApiError.class)))
+        @ApiResponse(
+            responseCode = "200",
+            description = "Produto atualizado com sucesso"
+        ),
+        @ApiResponse(
+            responseCode = "400",
+            description = "Dados inválidos",
+            content = @Content(
+                schema = @Schema(implementation = ApiError.class),
+                examples = @ExampleObject(value = """
+                    {
+                      "timestamp": "2026-10-22T18:30:00Z",
+                      "status": 400,
+                      "error": "Bad Request",
+                      "message": "Dados inválidos",
+                      "path": "/api/produtos/1",
+                      "fields": {
+                        "descricao": "Descrição é obrigatória"
+                      }
+                    }
+                    """)
+            )
+        ),
+        @ApiResponse(
+            responseCode = "404",
+            description = "Produto, grupo ou fornecedor não encontrado",
+            content = @Content(
+                schema = @Schema(implementation = ApiError.class),
+                examples = @ExampleObject(value = """
+                    {
+                      "timestamp": "2026-10-22T18:30:00Z",
+                      "status": 404,
+                      "error": "Not Found",
+                      "message": "Produto não encontrado",
+                      "path": "/api/produtos/999",
+                      "fields": {}
+                    }
+                    """)
+            )
+        ),
+        @ApiResponse(
+            responseCode = "409",
+            description = "Código de barras já cadastrado",
+            content = @Content(
+                schema = @Schema(implementation = ApiError.class),
+                examples = @ExampleObject(value = """
+                    {
+                      "timestamp": "2026-10-22T18:30:00Z",
+                      "status": 409,
+                      "error": "Conflict",
+                      "message": "Código de barras já cadastrado",
+                      "path": "/api/produtos/1",
+                      "fields": {}
+                    }
+                    """)
+            )
+        )
     })
     @PutMapping("/{id}")
     public ResponseEntity<ProdutoResponse> editar(
