@@ -60,7 +60,13 @@ public class ProdutoController {
 
     @Operation(
         summary = "Editar produto",
-        description = "Atualiza os dados de um produto existente."
+        description = """
+        Atualiza a descrição, o preço unitário, o estoque mínimo,
+        o grupo e o fornecedor de um produto existente.
+        O saldo de estoque não pode ser alterado por esta operação.
+        Para modificar o saldo, utilize os endpoints específicos
+        de entrada e saída de estoque.
+        """
     )
     @ApiResponses({
         @ApiResponse(responseCode = "200", description = "Produto atualizado com sucesso"),
