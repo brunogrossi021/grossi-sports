@@ -7,11 +7,14 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.EntityGraph;
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.JpaSpecificationExecutor;
 
 import java.util.List;
 import java.util.Optional;
 
-public interface ProdutoRepository extends JpaRepository<Produto, Long> {
+public interface ProdutoRepository extends
+    JpaRepository<Produto, Long>,
+    JpaSpecificationExecutor<Produto> {
 
     Optional<Produto> findByCodigoBarras(String codigoBarras);
 
@@ -27,10 +30,16 @@ public interface ProdutoRepository extends JpaRepository<Produto, Long> {
     @EntityGraph(attributePaths = {"grupo", "fornecedor"})
     Optional<Produto> findById(Long id);
 
+
     @Override
     @EntityGraph(attributePaths = {"grupo", "fornecedor"})
     List<Produto> findAll();
 
     @EntityGraph(attributePaths = {"grupo", "fornecedor"})
     Page<Produto> findAll(Pageable pageable);
+
+    @EntityGraph(attributePaths = {"grupo", "fornecedor"})
+    Page<Produto> findAll(
+        org.springframework.data.jpa.domain.Specification<Produto> spec,
+        Pageable pageable);
 }

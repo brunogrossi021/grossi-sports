@@ -106,4 +106,14 @@ class ProdutoApiTest {
             .andExpect(jsonPath("$.message")
                 .value("Produto não encontrado"));
     }
+
+    @Test
+    void deveDisponibilizarDocumentacaoOpenApi() throws Exception {
+        mockMvc.perform(get("/v3/api-docs"))
+            .andExpect(status().isOk())
+            .andExpect(jsonPath("$.openapi").exists())
+            .andExpect(jsonPath("$.paths['/api/produtos']").exists())
+            .andExpect(jsonPath("$.paths['/api/produtos/{id}']").exists());
+    }
+
 }

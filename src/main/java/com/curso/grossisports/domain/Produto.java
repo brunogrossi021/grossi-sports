@@ -170,6 +170,23 @@ public class Produto {
         this.saldoEstoque = saldoEstoque.subtract(quantidade);
     }
 
+
+    public void alterarCodigoBarras(String novoCodigoBarras) {
+        String codigoValidado = validarTextoObrigatorio(
+            novoCodigoBarras,
+            "Código de barras é obrigatório"
+        );
+
+        if (codigoValidado.length() > 50) {
+            throw new IllegalArgumentException(
+                "Código de barras deve possuir no máximo 50 caracteres"
+            );
+        }
+
+        this.codigoBarras = codigoValidado;
+    }
+
+
     public void alterarDescricao(String novaDescricao) {
         this.descricao = validarTextoObrigatorio(
             novaDescricao,

@@ -1,0 +1,5 @@
+$kind: http-request
+url: ""
+method: GET
+examples: .resources/Ativar grupo.resources/examples
+order: 4485315013070261

@@ -1,0 +1,4 @@
+$kind: http-request
+url: http://localhost:8080/api/grupos-produtos/2
+method: DELETE
+order: 4485315013071261

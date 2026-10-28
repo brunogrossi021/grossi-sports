@@ -1,0 +1,22 @@
+$kind: http-request
+description: ""
+url: http://localhost:8080/api/produtos/1
+method: PUT
+body:
+  type: json
+  content: "{\r
+
+    \  \"codigoBarras\": \"7891234567890\",\r
+
+    \  \"descricao\": \"Bola de futebol profissional\",\r
+
+    \  \"valorUnitario\": 149.90,\r
+
+    \  \"estoqueMinimo\": 5,\r
+
+    \  \"grupoId\": 1,\r
+
+    \  \"fornecedorId\": null\r
+
+    }"
+order: 5000

@@ -1,0 +1,11 @@
+$kind: http-request
+url: http://localhost:8080/api/grupos-produtos/1
+method: PUT
+body:
+  type: json
+  content: "{\r
+
+    \  \"nome\": \"Bolas e Acessórios\"\r
+
+    }"
+order: 4485315013067261
