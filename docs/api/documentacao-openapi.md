@@ -56,3 +56,18 @@ http://localhost:8080/v3/api-docs.yaml
 
 **Repositório do projeto:**  
 https://github.com/brunogrossi021/grossi-sports
+
+## 5. Divergência identificada e correção
+
+Durante a revisão do contrato OpenAPI, identificamos que a tabela
+de operações desta documentação ainda apresentava os métodos HTTP
+dos endpoints de ativação e inativação como "A confirmar".
+
+A inspeção do arquivo `api-docs.yaml` mostrou que as quatro operações
+utilizam o método `PATCH`: ativação e inativação de produtos e de
+grupos de produtos. Corrigimos a tabela para refletir os métodos
+registrados no contrato gerado.
+
+Essa revisão demonstra que a documentação auxiliar precisa ser
+comparada com o contrato real, pois informações desatualizadas podem
+confundir quem consome a API.
