@@ -1,0 +1,1156 @@
+openapi: 3.1.0
+info:
+  title: Grossi Sports API
+  description: "API para gerenciamento de produtos esportivos, grupos de produtos,\
+    \ fornecedores e movimentações de estoque."
+  version: 1.0.0
+servers:
+- url: http://localhost:8080
+  description: Generated server url
+tags:
+- name: Fornecedores
+  description: Gerenciamento de fornecedores de produtos esportivos
+- name: Grupos de produtos
+  description: Gerenciamento dos grupos de produtos esportivos
+- name: Produtos
+  description: Gerenciamento de produtos esportivos e movimentações de estoque
+paths:
+  /api/produtos/{id}:
+    get:
+      tags:
+      - Produtos
+      summary: Buscar produto por ID
+      description: Retorna os dados de um produto específico.
+      operationId: buscarPorId
+      parameters:
+      - name: id
+        in: path
+        description: Identificador do produto
+        required: true
+        schema:
+          type: integer
+          format: int64
+        example: 1
+      responses:
+        "200":
+          description: Produto encontrado
+          content:
+            '*/*':
+              schema:
+                $ref: "#/components/schemas/ProdutoResponse"
+        "404":
+          description: Produto não encontrado
+          content:
+            '*/*':
+              schema:
+                $ref: "#/components/schemas/ApiError"
+    put:
+      tags:
+      - Produtos
+      summary: Editar produto
+      description: |
+        Atualiza a descrição, o preço unitário, o estoque mínimo,
+        o grupo e o fornecedor de um produto existente.
+        O saldo de estoque não pode ser alterado por esta operação.
+        Para modificar o saldo, utilize os endpoints específicos
+        de entrada e saída de estoque.
+      operationId: editar
+      parameters:
+      - name: id
+        in: path
+        description: Identificador do produto
+        required: true
+        schema:
+          type: integer
+          format: int64
+        example: 1
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/ProdutoUpdateRequest"
+        required: true
+      responses:
+        "200":
+          description: Produto atualizado com sucesso
+          content:
+            '*/*':
+              schema:
+                $ref: "#/components/schemas/ProdutoResponse"
+        "400":
+          description: Dados inválidos
+          content:
+            '*/*':
+              schema:
+                $ref: "#/components/schemas/ApiError"
+              example:
+                timestamp: 2026-10-22T18:30:00Z
+                status: 400
+                error: Bad Request
+                message: Dados inválidos
+                path: /api/produtos/1
+                fields:
+                  descricao: Descrição é obrigatória
+        "404":
+          description: "Produto, grupo ou fornecedor não encontrado"
+          content:
+            '*/*':
+              schema:
+                $ref: "#/components/schemas/ApiError"
+              example:
+                timestamp: 2026-10-22T18:30:00Z
+                status: 404
+                error: Not Found
+                message: Produto não encontrado
+                path: /api/produtos/999
+                fields: {}
+        "409":
+          description: Código de barras já cadastrado
+          content:
+            '*/*':
+              schema:
+                $ref: "#/components/schemas/ApiError"
+              example:
+                timestamp: 2026-10-22T18:30:00Z
+                status: 409
+                error: Conflict
+                message: Código de barras já cadastrado
+                path: /api/produtos/1
+                fields: {}
+  /api/grupos-produtos/{id}:
+    get:
+      tags:
+      - Grupos de produtos
+      summary: Buscar grupo de produtos por ID
+      description: Retorna os dados de um grupo de produtos específico.
+      operationId: buscarPorId_1
+      parameters:
+      - name: id
+        in: path
+        description: Identificador do grupo
+        required: true
+        schema:
+          type: integer
+          format: int64
+        example: 1
+      responses:
+        "200":
+          description: Grupo encontrado
+          content:
+            '*/*':
+              schema:
+                $ref: "#/components/schemas/GrupoProdutoResponse"
+        "404":
+          description: Grupo não encontrado
+          content:
+            '*/*':
+              schema:
+                $ref: "#/components/schemas/ApiError"
+              examples:
+                Grupo não encontrado:
+                  description: Grupo não encontrado
+                  value:
+                    timestamp: 2026-10-22T18:30:00Z
+                    status: 404
+                    error: Not Found
+                    message: Grupo não encontrado
+                    path: /api/grupos-produtos/999
+                    fields: {}
+    put:
+      tags:
+      - Grupos de produtos
+      summary: Editar grupo de produtos
+      description: Atualiza o nome de um grupo de produtos existente.
+      operationId: editar_1
+      parameters:
+      - name: id
+        in: path
+        description: Identificador do grupo
+        required: true
+        schema:
+          type: integer
+          format: int64
+        example: 1
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/GrupoProdutoRequest"
+        required: true
+      responses:
+        "200":
+          description: Grupo atualizado com sucesso
+          content:
+            '*/*':
+              schema:
+                $ref: "#/components/schemas/GrupoProdutoResponse"
+        "400":
+          description: Dados inválidos
+          content:
+            '*/*':
+              schema:
+                $ref: "#/components/schemas/ApiError"
+              examples:
+                Dados inválidos:
+                  description: Dados inválidos
+                  value:
+                    timestamp: 2026-10-22T18:30:00Z
+                    status: 400
+                    error: Bad Request
+                    message: Dados inválidos
+                    path: /api/grupos-produtos/1
+                    fields:
+                      nome: O nome é obrigatório
+        "404":
+          description: Grupo não encontrado
+          content:
+            '*/*':
+              schema:
+                $ref: "#/components/schemas/ApiError"
+              examples:
+                Grupo não encontrado:
+                  description: Grupo não encontrado
+                  value:
+                    timestamp: 2026-10-22T18:30:00Z
+                    status: 404
+                    error: Not Found
+                    message: Grupo não encontrado
+                    path: /api/grupos-produtos/999
+                    fields: {}
+        "409":
+          description: Já existe um grupo com esse nome
+          content:
+            '*/*':
+              schema:
+                $ref: "#/components/schemas/ApiError"
+              examples:
+                Nome de grupo duplicado:
+                  description: Nome de grupo duplicado
+                  value:
+                    timestamp: 2026-10-22T18:30:00Z
+                    status: 409
+                    error: Conflict
+                    message: Já existe um grupo com esse nome
+                    path: /api/grupos-produtos/1
+                    fields: {}
+    delete:
+      tags:
+      - Grupos de produtos
+      summary: Excluir grupo de produtos
+      description: "Exclui um grupo de produtos, desde que não existam produtos associados."
+      operationId: excluir
+      parameters:
+      - name: id
+        in: path
+        description: Identificador do grupo
+        required: true
+        schema:
+          type: integer
+          format: int64
+        example: 1
+      responses:
+        "204":
+          description: Grupo excluído com sucesso
+        "404":
+          description: Grupo não encontrado
+          content:
+            '*/*':
+              schema:
+                $ref: "#/components/schemas/ApiError"
+              examples:
+                Grupo não encontrado:
+                  description: Grupo não encontrado
+                  value:
+                    timestamp: 2026-10-22T18:30:00Z
+                    status: 404
+                    error: Not Found
+                    message: Grupo não encontrado
+                    path: /api/grupos-produtos/999
+                    fields: {}
+        "409":
+          description: Grupo possui produtos associados
+          content:
+            '*/*':
+              schema:
+                $ref: "#/components/schemas/ApiError"
+              examples:
+                Grupo possui produtos associados:
+                  description: Grupo possui produtos associados
+                  value:
+                    timestamp: 2026-10-22T18:30:00Z
+                    status: 409
+                    error: Conflict
+                    message: Grupo possui produtos associados
+                    path: /api/grupos-produtos/1
+                    fields: {}
+  /api/produtos:
+    get:
+      tags:
+      - Produtos
+      summary: Listar produtos
+      description: "Lista produtos com paginação, ordenação e filtros."
+      operationId: listar
+      parameters:
+      - name: pagina
+        in: query
+        description: "Número da página, começando em zero"
+        required: false
+        schema:
+          type: integer
+          format: int32
+          default: 0
+        example: 0
+      - name: tamanho
+        in: query
+        description: "Quantidade de itens por página, de 1 a 100"
+        required: false
+        schema:
+          type: integer
+          format: int32
+          default: 10
+        example: 10
+      - name: ordenarPor
+        in: query
+        description: Campo usado para ordenação
+        required: false
+        schema:
+          type: string
+          default: descricao
+        example: descricao
+      - name: direcao
+        in: query
+        description: "Direção da ordenação: asc ou desc"
+        required: false
+        schema:
+          type: string
+          default: asc
+        example: asc
+      - name: descricao
+        in: query
+        description: Filtra pela descrição do produto
+        required: false
+        schema:
+          type: string
+        example: Bola
+      - name: codigoBarras
+        in: query
+        description: Filtra pelo código de barras
+        required: false
+        schema:
+          type: string
+        example: 7891234567890
+      - name: grupoId
+        in: query
+        description: Filtra pelo identificador do grupo
+        required: false
+        schema:
+          type: integer
+          format: int64
+        example: 1
+      - name: status
+        in: query
+        description: Filtra pela situação do produto
+        required: false
+        schema:
+          type: string
+          enum:
+          - ATIVO
+          - INATIVO
+        example: ATIVO
+      - name: valorMinimo
+        in: query
+        description: Preço unitário mínimo
+        required: false
+        schema:
+          type: number
+        example: 10.0
+      - name: valorMaximo
+        in: query
+        description: Preço unitário máximo
+        required: false
+        schema:
+          type: number
+        example: 200.0
+      responses:
+        "200":
+          description: Lista de produtos retornada
+          content:
+            '*/*':
+              schema:
+                $ref: "#/components/schemas/PageResponseProdutoResponse"
+        "400":
+          description: Parâmetros inválidos
+          content:
+            '*/*':
+              schema:
+                $ref: "#/components/schemas/ApiError"
+    post:
+      tags:
+      - Produtos
+      summary: Cadastrar produto
+      description: Cadastra um produto esportivo e associa seu grupo e fornecedor.
+      operationId: cadastrar
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/ProdutoRequest"
+        required: true
+      responses:
+        "201":
+          description: Produto cadastrado com sucesso
+          content:
+            '*/*':
+              schema:
+                $ref: "#/components/schemas/ProdutoResponse"
+        "400":
+          description: Dados inválidos
+          content:
+            '*/*':
+              schema:
+                $ref: "#/components/schemas/ApiError"
+        "404":
+          description: Grupo ou fornecedor não encontrado
+          content:
+            '*/*':
+              schema:
+                $ref: "#/components/schemas/ApiError"
+        "409":
+          description: Código de barras já cadastrado
+          content:
+            '*/*':
+              schema:
+                $ref: "#/components/schemas/ApiError"
+  /api/produtos/{id}/estoque/saidas:
+    post:
+      tags:
+      - Produtos
+      summary: Registrar saída de estoque
+      description: "Retira uma quantidade do estoque do produto informado, respeitando\
+        \ as regras de estoque."
+      operationId: retirarEstoque
+      parameters:
+      - name: id
+        in: path
+        description: Identificador do produto
+        required: true
+        schema:
+          type: integer
+          format: int64
+        example: 1
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/MovimentacaoEstoqueRequest"
+        required: true
+      responses:
+        "200":
+          description: Saída registrada com sucesso
+          content:
+            '*/*':
+              schema:
+                $ref: "#/components/schemas/ProdutoResponse"
+        "400":
+          description: Quantidade inválida ou saldo insuficiente
+          content:
+            '*/*':
+              schema:
+                $ref: "#/components/schemas/ApiError"
+        "404":
+          description: Produto não encontrado
+          content:
+            '*/*':
+              schema:
+                $ref: "#/components/schemas/ApiError"
+  /api/produtos/{id}/estoque/entradas:
+    post:
+      tags:
+      - Produtos
+      summary: Registrar entrada de estoque
+      description: Adiciona uma quantidade ao estoque do produto informado.
+      operationId: receberEstoque
+      parameters:
+      - name: id
+        in: path
+        description: Identificador do produto
+        required: true
+        schema:
+          type: integer
+          format: int64
+        example: 1
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/MovimentacaoEstoqueRequest"
+        required: true
+      responses:
+        "200":
+          description: Entrada registrada com sucesso
+          content:
+            '*/*':
+              schema:
+                $ref: "#/components/schemas/ProdutoResponse"
+        "400":
+          description: Quantidade inválida
+          content:
+            '*/*':
+              schema:
+                $ref: "#/components/schemas/ApiError"
+        "404":
+          description: Produto não encontrado
+          content:
+            '*/*':
+              schema:
+                $ref: "#/components/schemas/ApiError"
+  /api/grupos-produtos:
+    get:
+      tags:
+      - Grupos de produtos
+      summary: Listar grupos de produtos
+      description: Lista os grupos de produtos com paginação e ordenação.
+      operationId: listar_1
+      parameters:
+      - name: pagina
+        in: query
+        description: "Número da página, começando em zero"
+        required: false
+        schema:
+          type: integer
+          format: int32
+          default: 0
+        example: 0
+      - name: tamanho
+        in: query
+        description: Quantidade de itens por página
+        required: false
+        schema:
+          type: integer
+          format: int32
+          default: 10
+        example: 10
+      - name: ordenarPor
+        in: query
+        description: Campo usado para ordenação
+        required: false
+        schema:
+          type: string
+          default: nome
+        example: nome
+      - name: direcao
+        in: query
+        description: "Direção da ordenação: asc ou desc"
+        required: false
+        schema:
+          type: string
+          default: asc
+        example: asc
+      responses:
+        "200":
+          description: Lista de grupos retornada
+          content:
+            '*/*':
+              schema:
+                $ref: "#/components/schemas/PageResponseGrupoProdutoResponse"
+        "400":
+          description: Parâmetros inválidos
+          content:
+            '*/*':
+              schema:
+                $ref: "#/components/schemas/ApiError"
+              examples:
+                Parâmetros inválidos:
+                  description: Parâmetros inválidos
+                  value:
+                    timestamp: 2026-10-22T18:30:00Z
+                    status: 400
+                    error: Bad Request
+                    message: Parâmetros de paginação ou ordenação inválidos
+                    path: /api/grupos-produtos
+                    fields: {}
+    post:
+      tags:
+      - Grupos de produtos
+      summary: Cadastrar grupo de produtos
+      description: Cadastra um novo grupo para classificar produtos esportivos.
+      operationId: cadastrar_1
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/GrupoProdutoRequest"
+        required: true
+      responses:
+        "201":
+          description: Grupo cadastrado com sucesso
+          content:
+            '*/*':
+              schema:
+                $ref: "#/components/schemas/GrupoProdutoResponse"
+        "400":
+          description: Dados inválidos
+          content:
+            '*/*':
+              schema:
+                $ref: "#/components/schemas/ApiError"
+              examples:
+                Dados inválidos:
+                  description: Dados inválidos
+                  value:
+                    timestamp: 2026-10-22T18:30:00Z
+                    status: 400
+                    error: Bad Request
+                    message: Dados inválidos
+                    path: /api/grupos-produtos
+                    fields:
+                      nome: O nome é obrigatório
+        "409":
+          description: Já existe um grupo com esse nome
+          content:
+            '*/*':
+              schema:
+                $ref: "#/components/schemas/ApiError"
+              examples:
+                Nome de grupo duplicado:
+                  description: Nome de grupo duplicado
+                  value:
+                    timestamp: 2026-10-22T18:30:00Z
+                    status: 409
+                    error: Conflict
+                    message: Já existe um grupo com esse nome
+                    path: /api/grupos-produtos
+                    fields: {}
+  /api/fornecedores:
+    get:
+      tags:
+      - Fornecedores
+      summary: Listar fornecedores
+      description: Retorna a lista de fornecedores cadastrados.
+      operationId: listar_2
+      responses:
+        "200":
+          description: Lista de fornecedores retornada
+          content:
+            '*/*':
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/FornecedorResponse"
+    post:
+      tags:
+      - Fornecedores
+      summary: Cadastrar fornecedor
+      description: Cadastra um fornecedor com razão social e CNPJ.
+      operationId: cadastrar_2
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/FornecedorRequest"
+        required: true
+      responses:
+        "201":
+          description: Fornecedor cadastrado com sucesso
+          content:
+            '*/*':
+              schema:
+                $ref: "#/components/schemas/FornecedorResponse"
+        "400":
+          description: Dados inválidos
+          content:
+            '*/*':
+              schema:
+                $ref: "#/components/schemas/ApiError"
+              examples:
+                Dados inválidos:
+                  description: Dados inválidos
+                  value:
+                    timestamp: 2026-10-22T18:30:00Z
+                    status: 400
+                    error: Bad Request
+                    message: Dados inválidos
+                    path: /api/fornecedores
+                    fields:
+                      cnpj: CNPJ inválido
+        "409":
+          description: CNPJ já cadastrado
+          content:
+            '*/*':
+              schema:
+                $ref: "#/components/schemas/ApiError"
+              examples:
+                CNPJ duplicado:
+                  description: CNPJ duplicado
+                  value:
+                    timestamp: 2026-10-22T18:30:00Z
+                    status: 409
+                    error: Conflict
+                    message: CNPJ já cadastrado
+                    path: /api/fornecedores
+                    fields: {}
+  /api/produtos/{id}/inativar:
+    patch:
+      tags:
+      - Produtos
+      summary: Inativar produto
+      description: Inativa o produto identificado pelo ID.
+      operationId: inativar
+      parameters:
+      - name: id
+        in: path
+        description: Identificador do produto
+        required: true
+        schema:
+          type: integer
+          format: int64
+        example: 1
+      responses:
+        "200":
+          description: Produto inativado com sucesso
+          content:
+            '*/*':
+              schema:
+                $ref: "#/components/schemas/ProdutoResponse"
+        "404":
+          description: Produto não encontrado
+          content:
+            '*/*':
+              schema:
+                $ref: "#/components/schemas/ApiError"
+  /api/produtos/{id}/ativar:
+    patch:
+      tags:
+      - Produtos
+      summary: Ativar produto
+      description: Ativa o produto identificado pelo ID.
+      operationId: ativar
+      parameters:
+      - name: id
+        in: path
+        description: Identificador do produto
+        required: true
+        schema:
+          type: integer
+          format: int64
+        example: 1
+      responses:
+        "200":
+          description: Produto ativado com sucesso
+          content:
+            '*/*':
+              schema:
+                $ref: "#/components/schemas/ProdutoResponse"
+        "404":
+          description: Produto não encontrado
+          content:
+            '*/*':
+              schema:
+                $ref: "#/components/schemas/ApiError"
+  /api/grupos-produtos/{id}/inativar:
+    patch:
+      tags:
+      - Grupos de produtos
+      summary: Inativar grupo de produtos
+      description: Inativa um grupo de produtos identificado pelo ID.
+      operationId: inativar_1
+      parameters:
+      - name: id
+        in: path
+        description: Identificador do grupo
+        required: true
+        schema:
+          type: integer
+          format: int64
+        example: 1
+      responses:
+        "200":
+          description: Grupo inativado com sucesso
+          content:
+            '*/*':
+              schema:
+                $ref: "#/components/schemas/GrupoProdutoResponse"
+        "404":
+          description: Grupo não encontrado
+          content:
+            '*/*':
+              schema:
+                $ref: "#/components/schemas/ApiError"
+              examples:
+                Grupo não encontrado:
+                  description: Grupo não encontrado
+                  value:
+                    timestamp: 2026-10-22T18:30:00Z
+                    status: 404
+                    error: Not Found
+                    message: Grupo não encontrado
+                    path: /api/grupos-produtos/999/inativar
+                    fields: {}
+  /api/grupos-produtos/{id}/ativar:
+    patch:
+      tags:
+      - Grupos de produtos
+      summary: Ativar grupo de produtos
+      description: Ativa um grupo de produtos identificado pelo ID.
+      operationId: ativar_1
+      parameters:
+      - name: id
+        in: path
+        description: Identificador do grupo
+        required: true
+        schema:
+          type: integer
+          format: int64
+        example: 1
+      responses:
+        "200":
+          description: Grupo ativado com sucesso
+          content:
+            '*/*':
+              schema:
+                $ref: "#/components/schemas/GrupoProdutoResponse"
+        "404":
+          description: Grupo não encontrado
+          content:
+            '*/*':
+              schema:
+                $ref: "#/components/schemas/ApiError"
+              examples:
+                Grupo não encontrado:
+                  description: Grupo não encontrado
+                  value:
+                    timestamp: 2026-10-22T18:30:00Z
+                    status: 404
+                    error: Not Found
+                    message: Grupo não encontrado
+                    path: /api/grupos-produtos/999/ativar
+                    fields: {}
+  /api/health:
+    get:
+      tags:
+      - health-controller
+      operationId: health
+      responses:
+        "200":
+          description: OK
+          content:
+            '*/*':
+              schema:
+                type: string
+components:
+  schemas:
+    ProdutoUpdateRequest:
+      type: object
+      description: Dados para atualizar um produto esportivo existente
+      properties:
+        descricao:
+          type: string
+          description: Nova descrição do produto
+          example: Bola de futebol profissional
+          maxLength: 150
+          minLength: 0
+        valorUnitario:
+          type: number
+          description: Novo preço unitário do produto
+          example: 179.9
+          minimum: 0
+        estoqueMinimo:
+          type: number
+          description: Quantidade mínima desejada em estoque
+          example: 5
+          minimum: 0
+        grupoId:
+          type: integer
+          format: int64
+          description: Identificador do grupo do produto
+          example: 1
+          exclusiveMinimum: 0
+        fornecedorId:
+          type: integer
+          format: int64
+          description: Identificador do fornecedor do produto
+          example: 1
+          exclusiveMinimum: 0
+      required:
+      - descricao
+      - estoqueMinimo
+      - grupoId
+      - valorUnitario
+    ApiError:
+      type: object
+      description: Detalhes de uma resposta de erro da API
+      example:
+        timestamp: 2026-10-22T18:30:00Z
+        status: 400
+        error: Bad Request
+        message: Dados inválidos
+        path: /api/produtos
+        fields:
+          descricao: Descrição é obrigatória
+      properties:
+        timestamp:
+          type: string
+          format: date-time
+          description: Data e hora em que o erro ocorreu
+          example: 2026-10-22T18:30:00Z
+        status:
+          type: integer
+          format: int32
+          description: Código HTTP do erro
+          example: 404
+        error:
+          type: string
+          description: Descrição do tipo de erro HTTP
+          example: Not Found
+        message:
+          type: string
+          description: Mensagem explicando o erro
+          example: Produto não encontrado
+        path:
+          type: string
+          description: Caminho da requisição que gerou o erro
+          example: /api/produtos/999
+        fields:
+          type: object
+          additionalProperties:
+            type: string
+          description: "Detalhes dos campos inválidos, quando aplicável"
+          example:
+            descricao: A descrição é obrigatória
+            valorUnitario: Deve ser maior que zero
+    ProdutoResponse:
+      type: object
+      description: Dados de um produto esportivo retornados pela API
+      properties:
+        id:
+          type: integer
+          format: int64
+          description: Identificador único do produto
+          example: 1
+        codigoBarras:
+          type: string
+          description: Código de barras do produto
+          example: "7891234567890"
+        descricao:
+          type: string
+          description: Descrição ou nome do produto
+          example: Bola de futebol
+        saldoEstoque:
+          type: number
+          description: Quantidade atual disponível em estoque
+          example: 20
+        valorUnitario:
+          type: number
+          description: Preço unitário do produto
+          example: 149.9
+        estoqueMinimo:
+          type: number
+          description: Quantidade mínima desejada em estoque
+          example: 5
+        valorEstoque:
+          type: number
+          description: "Valor total do estoque, calculado a partir do saldo e do preç\
+            o unitário"
+          example: 2998.0
+        dataCadastro:
+          type: string
+          format: date
+          description: Data de cadastro do produto
+          example: 2026-10-22
+        status:
+          type: string
+          description: Situação atual do produto
+          enum:
+          - ATIVO
+          - INATIVO
+          example: ATIVO
+        grupoId:
+          type: integer
+          format: int64
+          description: Identificador do grupo do produto
+          example: 1
+        grupoNome:
+          type: string
+          description: Nome do grupo ao qual o produto pertence
+          example: Bolas
+        fornecedorId:
+          type: integer
+          format: int64
+          description: Identificador do fornecedor do produto
+          example: 1
+        fornecedorRazaoSocial:
+          type: string
+          description: Razão social do fornecedor do produto
+          example: Fornecedor Esportivo LTDA
+    GrupoProdutoRequest:
+      type: object
+      description: Dados necessários para cadastrar ou editar um grupo de produtos
+      properties:
+        nome:
+          type: string
+          description: Nome do grupo de produtos
+          example: Bolas
+          maxLength: 120
+          minLength: 0
+      required:
+      - nome
+    GrupoProdutoResponse:
+      type: object
+      description: Dados de um grupo de produtos retornados pela API
+      properties:
+        id:
+          type: integer
+          format: int64
+          description: Identificador único do grupo
+          example: 1
+        nome:
+          type: string
+          description: Nome do grupo de produtos
+          example: Bolas
+        status:
+          type: string
+          description: Situação atual do grupo
+          enum:
+          - ATIVO
+          - INATIVO
+          example: ATIVO
+    ProdutoRequest:
+      type: object
+      description: Dados necessários para cadastrar um produto esportivo
+      properties:
+        codigoBarras:
+          type: string
+          description: Código de barras do produto
+          example: "7891234567890"
+          maxLength: 50
+          minLength: 0
+        descricao:
+          type: string
+          description: Descrição ou nome do produto
+          example: Bola de futebol
+          maxLength: 150
+          minLength: 0
+        saldoEstoque:
+          type: number
+          description: Quantidade inicial disponível em estoque
+          example: 20
+          minimum: 0
+        valorUnitario:
+          type: number
+          description: Preço unitário do produto
+          example: 149.9
+          minimum: 0
+        estoqueMinimo:
+          type: number
+          description: Quantidade mínima desejada em estoque
+          example: 5
+          minimum: 0
+        grupoId:
+          type: integer
+          format: int64
+          description: Identificador do grupo ao qual o produto pertence
+          example: 1
+          exclusiveMinimum: 0
+        fornecedorId:
+          type: integer
+          format: int64
+          description: Identificador do fornecedor do produto
+          example: 1
+          exclusiveMinimum: 0
+      required:
+      - codigoBarras
+      - descricao
+      - estoqueMinimo
+      - grupoId
+      - saldoEstoque
+      - valorUnitario
+    MovimentacaoEstoqueRequest:
+      type: object
+      properties:
+        quantidade:
+          type: number
+          minimum: 0.001
+      required:
+      - quantidade
+    FornecedorRequest:
+      type: object
+      description: Dados necessários para cadastrar um fornecedor
+      properties:
+        razaoSocial:
+          type: string
+          description: Razão social do fornecedor
+          example: Fornecedor Esportivo LTDA
+          maxLength: 150
+          minLength: 0
+        cnpj:
+          type: string
+          description: "CNPJ do fornecedor contendo exatamente 14 dígitos, sem pontuaç\
+            ão"
+          example: "12345678000199"
+          minLength: 1
+          pattern: "\\d{14}"
+      required:
+      - cnpj
+      - razaoSocial
+    FornecedorResponse:
+      type: object
+      description: Dados de um fornecedor retornados pela API
+      properties:
+        id:
+          type: integer
+          format: int64
+          description: Identificador único do fornecedor
+          example: 1
+        razaoSocial:
+          type: string
+          description: Razão social do fornecedor
+          example: Fornecedor Esportivo LTDA
+        cnpj:
+          type: string
+          description: "CNPJ do fornecedor, contendo 14 dígitos"
+          example: "12345678000199"
+        status:
+          type: string
+          description: Situação atual do fornecedor
+          enum:
+          - ATIVO
+          - INATIVO
+          example: ATIVO
+    PageResponseProdutoResponse:
+      type: object
+      properties:
+        content:
+          type: array
+          items:
+            $ref: "#/components/schemas/ProdutoResponse"
+        page:
+          type: integer
+          format: int32
+        size:
+          type: integer
+          format: int32
+        totalElements:
+          type: integer
+          format: int64
+        totalPages:
+          type: integer
+          format: int32
+    PageResponseGrupoProdutoResponse:
+      type: object
+      properties:
+        content:
+          type: array
+          items:
+            $ref: "#/components/schemas/GrupoProdutoResponse"
+        page:
+          type: integer
+          format: int32
+        size:
+          type: integer
+          format: int32
+        totalElements:
+          type: integer
+          format: int64
+        totalPages:
+          type: integer
+          format: int32
