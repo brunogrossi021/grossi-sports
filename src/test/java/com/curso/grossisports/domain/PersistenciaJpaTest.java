@@ -51,16 +51,16 @@ class PersistenciaJpaTest {
             recuperado.getGrupo().getNome());
     }
 
-    @Test
-    void deveTerDezoitoChangeSetsRegistrados() {
-        Long quantidade = ((Number) entityManager
-            .createNativeQuery(
-                "SELECT COUNT(*) FROM databasechangelog")
-            .getSingleResult())
-            .longValue();
+   @Test
+void deveTerDezenoveChangeSetsRegistrados() {
+    Long quantidade = ((Number) entityManager
+        .createNativeQuery(
+            "SELECT COUNT(*) FROM databasechangelog")
+        .getSingleResult())
+        .longValue();
 
-        assertEquals(18L, quantidade);
-    }
+    assertEquals(19L, quantidade);
+}
 
     @Test
     @Transactional

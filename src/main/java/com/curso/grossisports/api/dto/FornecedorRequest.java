@@ -1,6 +1,7 @@
 
 package com.curso.grossisports.api.dto;
 
+import com.curso.grossisports.validation.CnpjValido;
 import io.swagger.v3.oas.annotations.media.Schema;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.Pattern;
@@ -17,18 +18,21 @@ public record FornecedorRequest(
     @NotBlank(message = "Razão social é obrigatória")
     @Size(
         max = 150,
-        message = "Razão social deve possuir no máximo 150 caracteres")
+        message = "Razão social deve possuir no máximo 150 caracteres"
+    )
     String razaoSocial,
 
     @Schema(
         description = "CNPJ do fornecedor contendo exatamente 14 dígitos, sem pontuação",
-        example = "12345678000199",
+        example = "11222333000181",
         requiredMode = Schema.RequiredMode.REQUIRED
     )
     @NotBlank(message = "CNPJ é obrigatório")
     @Pattern(
         regexp = "\\d{14}",
-        message = "CNPJ deve possuir 14 dígitos")
+        message = "CNPJ deve possuir 14 dígitos"
+    )
+    @CnpjValido
     String cnpj
 
 ) {

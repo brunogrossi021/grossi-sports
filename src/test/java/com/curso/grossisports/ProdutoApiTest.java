@@ -43,7 +43,7 @@ class ProdutoApiTest {
         Fornecedor fornecedor = fornecedorRepository.save(
             new Fornecedor(
                 "Fornecedor API",
-                "22222222000192"));
+                "11222333000181"));
 
         String json = """
             {
