@@ -1,0 +1,15 @@
+$kind: http-request
+url: http://localhost:8080/api/pessoas/1
+method: PUT
+body:
+  type: json
+  content: "{\r
+
+    \  \"nome\": \"Bruno Henrique Atualizado\",\r
+
+    \  \"email\": \"bruno.atualizado@example.com\",\r
+
+    \  \"cpf\": \"52998224725\"\r
+
+    }"
+order: 4485315013076261
