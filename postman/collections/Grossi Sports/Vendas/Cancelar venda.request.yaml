@@ -1,0 +1,5 @@
+$kind: http-request
+description: ""
+url: http://localhost:8080/api/vendas/1/cancelamento
+method: POST
+order: 4485315013077206

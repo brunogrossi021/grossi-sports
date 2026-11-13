@@ -1,0 +1,8 @@
+$kind: http-request
+description: ""
+url: http://localhost:8080/api/colaboradores
+method: POST
+body:
+  type: json
+  content: "{\r\n  \"pessoaId\": 2,\r\n  \"matricula\": \"MAT-001\",\r\n  \"funcao\": \"VENDEDOR\",\r\n  \"dataAdmissao\": \"2026-01-01\"\r\n}"
+order: 4485315013077101

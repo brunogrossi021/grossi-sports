@@ -101,9 +101,12 @@ public class ApiExceptionHandler {
             null);
     }
 
-    @ExceptionHandler(IllegalArgumentException.class)
+    @ExceptionHandler({
+        IllegalArgumentException.class,
+        IllegalStateException.class
+    })
     public ResponseEntity<ApiError> tratarArgumentoInvalido(
-        IllegalArgumentException exception,
+        RuntimeException exception,
         HttpServletRequest request) {
 
         return criarResposta(

@@ -1,0 +1,9 @@
+databaseChangeLog:
+  - changeSet:
+      id: 007-01-altera-quantidade-item-venda
+      author: grossi-sports
+      changes:
+        - modifyDataType:
+            tableName: item_venda
+            columnName: quantidade
+            newDataType: NUMERIC(18,3)

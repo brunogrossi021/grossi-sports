@@ -1,0 +1,5 @@
+$kind: http-request
+description: ""
+url: http://localhost:8080/api/vendas?pagina=0&tamanho=10&ordenarPor=dataAbertura&direcao=desc
+method: GET
+order: 4485315013077202

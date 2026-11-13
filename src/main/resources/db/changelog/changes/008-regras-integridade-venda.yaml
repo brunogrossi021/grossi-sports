@@ -1,0 +1,108 @@
+databaseChangeLog:
+  - changeSet:
+      id: 008-01-checks-venda
+      author: grossi-sports
+      comment: Impede status de venda fora do domínio da aplicação.
+      changes:
+        - sql:
+            sql: >
+              ALTER TABLE venda
+              ADD CONSTRAINT ck_venda_status
+              CHECK (status IN ('ABERTA', 'FINALIZADA', 'CANCELADA'))
+      rollback:
+        - sql:
+            sql: ALTER TABLE venda DROP CONSTRAINT ck_venda_status
+
+  - changeSet:
+      id: 008-02-checks-colaborador
+      author: grossi-sports
+      comment: Impede funções de colaborador fora do domínio da aplicação.
+      changes:
+        - sql:
+            sql: >
+              ALTER TABLE colaborador
+              ADD CONSTRAINT ck_colaborador_funcao
+              CHECK (funcao IN ('VENDEDOR', 'ESTOQUISTA', 'GERENTE', 'ADMINISTRATIVO'))
+      rollback:
+        - sql:
+            sql: ALTER TABLE colaborador DROP CONSTRAINT ck_colaborador_funcao
+
+  - changeSet:
+      id: 008-03-unique-item-venda-produto
+      author: grossi-sports
+      comment: Garante um único item por produto em cada venda.
+      changes:
+        - addUniqueConstraint:
+            tableName: item_venda
+            columnNames: venda_id, produto_id
+            constraintName: uk_item_venda_produto
+      rollback:
+        - dropUniqueConstraint:
+            tableName: item_venda
+            constraintName: uk_item_venda_produto
+
+  - changeSet:
+      id: 008-04-checks-item-venda
+      author: grossi-sports
+      comment: Impede quantidade não positiva e valor unitário negativo.
+      changes:
+        - sql:
+            sql: >
+              ALTER TABLE item_venda
+              ADD CONSTRAINT ck_item_venda_quantidade
+              CHECK (quantidade > 0)
+        - sql:
+            sql: >
+              ALTER TABLE item_venda
+              ADD CONSTRAINT ck_item_venda_valor_unitario
+              CHECK (valor_unitario >= 0)
+      rollback:
+        - sql:
+            sql: ALTER TABLE item_venda DROP CONSTRAINT ck_item_venda_valor_unitario
+        - sql:
+            sql: ALTER TABLE item_venda DROP CONSTRAINT ck_item_venda_quantidade
+
+  - changeSet:
+      id: 008-05-fks-item-venda
+      author: grossi-sports
+      comment: Mantém itens vinculados à venda (cascade) e protege produtos já vendidos (restrict).
+      changes:
+        - dropForeignKeyConstraint:
+            baseTableName: item_venda
+            constraintName: fk_item_venda_venda
+        - dropForeignKeyConstraint:
+            baseTableName: item_venda
+            constraintName: fk_item_venda_produto
+        - addForeignKeyConstraint:
+            baseTableName: item_venda
+            baseColumnNames: venda_id
+            referencedTableName: venda
+            referencedColumnNames: id
+            constraintName: fk_item_venda_venda
+            onDelete: CASCADE
+        - addForeignKeyConstraint:
+            baseTableName: item_venda
+            baseColumnNames: produto_id
+            referencedTableName: produto
+            referencedColumnNames: id
+            constraintName: fk_item_venda_produto
+            onDelete: RESTRICT
+      rollback:
+        - dropForeignKeyConstraint:
+            baseTableName: item_venda
+            constraintName: fk_item_venda_produto
+        - dropForeignKeyConstraint:
+            baseTableName: item_venda
+            constraintName: fk_item_venda_venda
+        - addForeignKeyConstraint:
+            baseTableName: item_venda
+            baseColumnNames: venda_id
+            referencedTableName: venda
+            referencedColumnNames: id
+            constraintName: fk_item_venda_venda
+        - addForeignKeyConstraint:
+            baseTableName: item_venda
+            baseColumnNames: produto_id
+            referencedTableName: produto
+            referencedColumnNames: id
+            constraintName: fk_item_venda_produto

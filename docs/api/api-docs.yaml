@@ -8,10 +8,18 @@ servers:
 - url: http://localhost:8080
   description: Generated server url
 tags:
+- name: Clientes
+  description: Papel comercial associado a uma pessoa
+- name: Colaboradores
+  description: Vínculo profissional e função de negócio
 - name: Fornecedores
   description: Gerenciamento de fornecedores de produtos esportivos
 - name: Grupos de produtos
   description: Gerenciamento dos grupos de produtos esportivos
+- name: Vendas
+  description: Gerenciamento de vendas e itens
+- name: Pessoas
+  description: Identidade civil compartilhada pelos papéis comerciais
 - name: Produtos
   description: Gerenciamento de produtos esportivos e movimentações de estoque
 paths:
@@ -117,13 +125,129 @@ paths:
                 message: Código de barras já cadastrado
                 path: /api/produtos/1
                 fields: {}
+  /api/pessoas/{id}:
+    get:
+      tags:
+      - Pessoas
+      summary: Buscar pessoa por ID
+      description: Retorna uma pessoa pelo seu identificador.
+      operationId: buscarPorId_1
+      parameters:
+      - name: id
+        in: path
+        description: Identificador da pessoa
+        required: true
+        schema:
+          type: integer
+          format: int64
+        example: 1
+      responses:
+        "200":
+          description: Pessoa encontrada
+          content:
+            '*/*':
+              schema:
+                $ref: "#/components/schemas/PessoaResponse"
+        "404":
+          description: Pessoa não encontrada
+          content:
+            '*/*':
+              schema:
+                $ref: "#/components/schemas/ApiError"
+    put:
+      tags:
+      - Pessoas
+      summary: Alterar pessoa
+      description: "Atualiza o nome, o e-mail e o CPF. Os papéis comerciais são mantidos."
+      operationId: alterar
+      parameters:
+      - name: id
+        in: path
+        description: Identificador da pessoa
+        required: true
+        schema:
+          type: integer
+          format: int64
+        example: 1
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/PessoaRequest"
+        required: true
+      responses:
+        "200":
+          description: Pessoa atualizada
+          content:
+            '*/*':
+              schema:
+                $ref: "#/components/schemas/PessoaResponse"
+        "400":
+          description: Dados ou CPF inválidos
+          content:
+            '*/*':
+              schema:
+                $ref: "#/components/schemas/ApiError"
+        "404":
+          description: Pessoa não encontrada
+          content:
+            '*/*':
+              schema:
+                $ref: "#/components/schemas/ApiError"
+        "409":
+          description: CPF ou e-mail já cadastrado
+          content:
+            '*/*':
+              schema:
+                $ref: "#/components/schemas/ApiError"
+  /api/pessoas/{id}/status:
+    put:
+      tags:
+      - Pessoas
+      summary: Alterar status da pessoa
+      description: Ativa ou inativa uma pessoa cadastrada.
+      operationId: alterarStatus
+      parameters:
+      - name: id
+        in: path
+        description: Identificador da pessoa
+        required: true
+        schema:
+          type: integer
+          format: int64
+        example: 1
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/StatusRequest"
+        required: true
+      responses:
+        "200":
+          description: Status alterado
+          content:
+            '*/*':
+              schema:
+                $ref: "#/components/schemas/PessoaResponse"
+        "400":
+          description: Status inválido
+          content:
+            '*/*':
+              schema:
+                $ref: "#/components/schemas/ApiError"
+        "404":
+          description: Pessoa não encontrada
+          content:
+            '*/*':
+              schema:
+                $ref: "#/components/schemas/ApiError"
   /api/grupos-produtos/{id}:
     get:
       tags:
       - Grupos de produtos
       summary: Buscar grupo de produtos por ID
       description: Retorna os dados de um grupo de produtos específico.
-      operationId: buscarPorId_1
+      operationId: buscarPorId_2
       parameters:
       - name: id
         in: path
@@ -283,6 +407,396 @@ paths:
                     message: Grupo possui produtos associados
                     path: /api/grupos-produtos/1
                     fields: {}
+  /api/colaboradores/{id}:
+    get:
+      tags:
+      - Colaboradores
+      summary: Buscar colaborador por ID
+      description: Retorna um colaborador e os dados da pessoa associada.
+      operationId: buscarPorId_3
+      parameters:
+      - name: id
+        in: path
+        description: Identificador do colaborador
+        required: true
+        schema:
+          type: integer
+          format: int64
+        example: 1
+      responses:
+        "200":
+          description: Colaborador encontrado
+          content:
+            '*/*':
+              schema:
+                $ref: "#/components/schemas/ColaboradorResponse"
+        "404":
+          description: Colaborador não encontrado
+          content:
+            '*/*':
+              schema:
+                $ref: "#/components/schemas/ApiError"
+    put:
+      tags:
+      - Colaboradores
+      summary: Alterar colaborador
+      description: Altera matrícula e função de negócio. Não concede permissões de
+        acesso.
+      operationId: alterar_1
+      parameters:
+      - name: id
+        in: path
+        description: Identificador do colaborador
+        required: true
+        schema:
+          type: integer
+          format: int64
+        example: 1
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/ColaboradorAtualizacaoRequest"
+        required: true
+      responses:
+        "200":
+          description: Colaborador atualizado
+          content:
+            '*/*':
+              schema:
+                $ref: "#/components/schemas/ColaboradorResponse"
+        "400":
+          description: Dados inválidos
+          content:
+            '*/*':
+              schema:
+                $ref: "#/components/schemas/ApiError"
+        "404":
+          description: Colaborador não encontrado
+          content:
+            '*/*':
+              schema:
+                $ref: "#/components/schemas/ApiError"
+        "409":
+          description: Matrícula já cadastrada
+          content:
+            '*/*':
+              schema:
+                $ref: "#/components/schemas/ApiError"
+  /api/clientes/{id}:
+    get:
+      tags:
+      - Clientes
+      summary: Buscar cliente por ID
+      description: Retorna um cliente e os dados da pessoa associada.
+      operationId: buscarPorId_4
+      parameters:
+      - name: id
+        in: path
+        description: Identificador do cliente
+        required: true
+        schema:
+          type: integer
+          format: int64
+        example: 1
+      responses:
+        "200":
+          description: Cliente encontrado
+          content:
+            '*/*':
+              schema:
+                $ref: "#/components/schemas/ClienteResponse"
+        "404":
+          description: Cliente não encontrado
+          content:
+            '*/*':
+              schema:
+                $ref: "#/components/schemas/ApiError"
+    put:
+      tags:
+      - Clientes
+      summary: Alterar cliente
+      description: "Altera o telefone do cliente. Nome, e-mail e CPF são alterados\
+        \ em /api/pessoas/{id}."
+      operationId: alterar_2
+      parameters:
+      - name: id
+        in: path
+        description: Identificador do cliente
+        required: true
+        schema:
+          type: integer
+          format: int64
+        example: 1
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/ClienteAtualizacaoRequest"
+        required: true
+      responses:
+        "200":
+          description: Cliente atualizado
+          content:
+            '*/*':
+              schema:
+                $ref: "#/components/schemas/ClienteResponse"
+        "400":
+          description: Dados inválidos
+          content:
+            '*/*':
+              schema:
+                $ref: "#/components/schemas/ApiError"
+        "404":
+          description: Cliente não encontrado
+          content:
+            '*/*':
+              schema:
+                $ref: "#/components/schemas/ApiError"
+  /api/vendas:
+    get:
+      tags:
+      - Vendas
+      summary: Pesquisar vendas
+      description: "Lista resumos de vendas filtrando por status, participantes e\
+        \ intervalo inclusivo de datas."
+      operationId: pesquisar
+      parameters:
+      - name: pagina
+        in: query
+        description: "Número da página, começando em zero"
+        required: false
+        schema:
+          type: integer
+          format: int32
+          default: 0
+        example: 0
+      - name: tamanho
+        in: query
+        description: Quantidade de vendas por página
+        required: false
+        schema:
+          type: integer
+          format: int32
+          default: 10
+        example: 10
+      - name: ordenarPor
+        in: query
+        description: Campo usado para ordenação
+        required: false
+        schema:
+          type: string
+          default: dataAbertura
+        example: dataAbertura
+      - name: direcao
+        in: query
+        description: "Direção da ordenação: asc ou desc"
+        required: false
+        schema:
+          type: string
+          default: desc
+        example: desc
+      - name: status
+        in: query
+        description: Filtra pelo status da venda
+        required: false
+        schema:
+          type: string
+          enum:
+          - ABERTA
+          - FINALIZADA
+          - CANCELADA
+        example: ABERTA
+      - name: clienteId
+        in: query
+        description: Filtra pelo identificador do cliente
+        required: false
+        schema:
+          type: integer
+          format: int64
+        example: 1
+      - name: vendedorId
+        in: query
+        description: Filtra pelo identificador do vendedor
+        required: false
+        schema:
+          type: integer
+          format: int64
+        example: 1
+      - name: dataInicial
+        in: query
+        description: "Data inicial do período, inclusive"
+        required: false
+        schema:
+          type: string
+          format: date
+        example: 2026-11-01
+      - name: dataFinal
+        in: query
+        description: "Data final do período, inclusive"
+        required: false
+        schema:
+          type: string
+          format: date
+        example: 2026-11-30
+      responses:
+        "200":
+          description: Lista de vendas retornada
+          content:
+            '*/*':
+              schema:
+                $ref: "#/components/schemas/PageResponseVendaResumoResponse"
+        "400":
+          description: Parâmetros inválidos
+          content:
+            '*/*':
+              schema:
+                $ref: "#/components/schemas/ApiError"
+    post:
+      tags:
+      - Vendas
+      summary: Abrir venda
+      description: Cria uma venda ABERTA para um cliente e um vendedor ativos.
+      operationId: abrirVenda
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/VendaRequest"
+        required: true
+      responses:
+        "201":
+          description: Venda aberta com sucesso
+          content:
+            '*/*':
+              schema:
+                $ref: "#/components/schemas/VendaResponse"
+        "400":
+          description: Dados inválidos
+          content:
+            '*/*':
+              schema:
+                $ref: "#/components/schemas/ApiError"
+        "404":
+          description: Cliente ou colaborador não encontrado
+          content:
+            '*/*':
+              schema:
+                $ref: "#/components/schemas/ApiError"
+  /api/vendas/{id}/itens:
+    post:
+      tags:
+      - Vendas
+      summary: Adicionar item à venda
+      description: Captura o preço atual do produto; somente vendas abertas aceitam
+        itens.
+      operationId: adicionarItem
+      parameters:
+      - name: id
+        in: path
+        description: Identificador da venda
+        required: true
+        schema:
+          type: integer
+          format: int64
+        example: 1
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/ItemVendaRequest"
+        required: true
+      responses:
+        "200":
+          description: Item adicionado com sucesso
+          content:
+            '*/*':
+              schema:
+                $ref: "#/components/schemas/VendaResponse"
+        "400":
+          description: Dados inválidos ou venda não está aberta
+          content:
+            '*/*':
+              schema:
+                $ref: "#/components/schemas/ApiError"
+        "404":
+          description: Venda ou produto não encontrado
+          content:
+            '*/*':
+              schema:
+                $ref: "#/components/schemas/ApiError"
+  /api/vendas/{id}/finalizacao:
+    post:
+      tags:
+      - Vendas
+      summary: Finalizar venda
+      description: Valida toda a venda e baixa o estoque de todos os itens na mesma
+        transação.
+      operationId: finalizar
+      parameters:
+      - name: id
+        in: path
+        description: Identificador da venda
+        required: true
+        schema:
+          type: integer
+          format: int64
+        example: 1
+      responses:
+        "200":
+          description: Venda finalizada com sucesso
+          content:
+            '*/*':
+              schema:
+                $ref: "#/components/schemas/VendaResponse"
+        "400":
+          description: "Venda vazia, estoque insuficiente ou estado inválido"
+          content:
+            '*/*':
+              schema:
+                $ref: "#/components/schemas/ApiError"
+        "404":
+          description: Venda ou produto não encontrado
+          content:
+            '*/*':
+              schema:
+                $ref: "#/components/schemas/ApiError"
+  /api/vendas/{id}/cancelamento:
+    post:
+      tags:
+      - Vendas
+      summary: Cancelar venda
+      description: "Cancela uma venda ainda aberta; como não houve baixa, não há estorno\
+        \ de estoque."
+      operationId: cancelar
+      parameters:
+      - name: id
+        in: path
+        description: Identificador da venda
+        required: true
+        schema:
+          type: integer
+          format: int64
+        example: 1
+      responses:
+        "200":
+          description: Venda cancelada com sucesso
+          content:
+            '*/*':
+              schema:
+                $ref: "#/components/schemas/VendaResponse"
+        "400":
+          description: Venda não está aberta
+          content:
+            '*/*':
+              schema:
+                $ref: "#/components/schemas/ApiError"
+        "404":
+          description: Venda não encontrada
+          content:
+            '*/*':
+              schema:
+                $ref: "#/components/schemas/ApiError"
   /api/produtos:
     get:
       tags:
@@ -504,6 +1018,116 @@ paths:
             '*/*':
               schema:
                 $ref: "#/components/schemas/ApiError"
+  /api/pessoas:
+    get:
+      tags:
+      - Pessoas
+      summary: Pesquisar pessoas
+      description: "Lista pessoas com paginação, ordenação e filtros opcionais."
+      operationId: pesquisar_1
+      parameters:
+      - name: pagina
+        in: query
+        description: "Número da página, começando em zero"
+        required: false
+        schema:
+          type: integer
+          format: int32
+          default: 0
+        example: 0
+      - name: tamanho
+        in: query
+        description: "Quantidade de itens por página, de 1 a 100"
+        required: false
+        schema:
+          type: integer
+          format: int32
+          default: 10
+        example: 10
+      - name: ordenarPor
+        in: query
+        description: Campo usado para ordenação
+        required: false
+        schema:
+          type: string
+          default: nome
+        example: nome
+      - name: direcao
+        in: query
+        description: "Direção da ordenação: asc ou desc"
+        required: false
+        schema:
+          type: string
+          default: asc
+        example: asc
+      - name: nome
+        in: query
+        description: Filtra pelo nome da pessoa
+        required: false
+        schema:
+          type: string
+        example: Bruno
+      - name: cpf
+        in: query
+        description: Filtra pelo CPF
+        required: false
+        schema:
+          type: string
+        example: 52998224725
+      - name: status
+        in: query
+        description: Filtra pela situação da pessoa
+        required: false
+        schema:
+          type: string
+          enum:
+          - ATIVO
+          - INATIVO
+        example: ATIVO
+      responses:
+        "200":
+          description: Lista de pessoas retornada
+          content:
+            '*/*':
+              schema:
+                $ref: "#/components/schemas/PageResponsePessoaResponse"
+        "400":
+          description: Parâmetros inválidos
+          content:
+            '*/*':
+              schema:
+                $ref: "#/components/schemas/ApiError"
+    post:
+      tags:
+      - Pessoas
+      summary: Cadastrar pessoa
+      description: "Cadastra uma pessoa com nome, e-mail e CPF."
+      operationId: cadastrar_1
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/PessoaRequest"
+        required: true
+      responses:
+        "201":
+          description: Pessoa cadastrada com sucesso
+          content:
+            '*/*':
+              schema:
+                $ref: "#/components/schemas/PessoaResponse"
+        "400":
+          description: Dados ou CPF inválidos
+          content:
+            '*/*':
+              schema:
+                $ref: "#/components/schemas/ApiError"
+        "409":
+          description: CPF ou e-mail já cadastrado
+          content:
+            '*/*':
+              schema:
+                $ref: "#/components/schemas/ApiError"
   /api/grupos-produtos:
     get:
       tags:
@@ -574,7 +1198,7 @@ paths:
       - Grupos de produtos
       summary: Cadastrar grupo de produtos
       description: Cadastra um novo grupo para classificar produtos esportivos.
-      operationId: cadastrar_1
+      operationId: cadastrar_2
       requestBody:
         content:
           application/json:
@@ -642,7 +1266,7 @@ paths:
       - Fornecedores
       summary: Cadastrar fornecedor
       description: Cadastra um fornecedor com razão social e CNPJ.
-      operationId: cadastrar_2
+      operationId: cadastrar_3
       requestBody:
         content:
           application/json:
@@ -689,6 +1313,243 @@ paths:
                     message: CNPJ já cadastrado
                     path: /api/fornecedores
                     fields: {}
+  /api/colaboradores:
+    get:
+      tags:
+      - Colaboradores
+      summary: Pesquisar colaboradores
+      description: "Lista colaboradores com paginação, ordenação e filtros opcionais."
+      operationId: pesquisar_2
+      parameters:
+      - name: pagina
+        in: query
+        description: "Número da página, começando em zero"
+        required: false
+        schema:
+          type: integer
+          format: int32
+          default: 0
+        example: 0
+      - name: tamanho
+        in: query
+        description: "Quantidade de itens por página, de 1 a 100"
+        required: false
+        schema:
+          type: integer
+          format: int32
+          default: 10
+        example: 10
+      - name: ordenarPor
+        in: query
+        description: Campo usado para ordenação
+        required: false
+        schema:
+          type: string
+          default: id
+        example: id
+      - name: direcao
+        in: query
+        description: "Direção da ordenação: asc ou desc"
+        required: false
+        schema:
+          type: string
+          default: asc
+        example: asc
+      - name: nome
+        in: query
+        description: Filtra pelo nome da pessoa
+        required: false
+        schema:
+          type: string
+        example: Carlos
+      - name: funcao
+        in: query
+        description: Filtra pela função do colaborador
+        required: false
+        schema:
+          type: string
+          enum:
+          - VENDEDOR
+          - ESTOQUISTA
+          - GERENTE
+          - ADMINISTRATIVO
+        example: VENDEDOR
+      - name: status
+        in: query
+        description: Filtra pela situação da pessoa
+        required: false
+        schema:
+          type: string
+          enum:
+          - ATIVO
+          - INATIVO
+        example: ATIVO
+      responses:
+        "200":
+          description: Lista de colaboradores retornada
+          content:
+            '*/*':
+              schema:
+                $ref: "#/components/schemas/PageResponseColaboradorResponse"
+        "400":
+          description: Parâmetros inválidos
+          content:
+            '*/*':
+              schema:
+                $ref: "#/components/schemas/ApiError"
+    post:
+      tags:
+      - Colaboradores
+      summary: Cadastrar colaborador
+      description: Associa um vínculo profissional a uma pessoa ativa.
+      operationId: cadastrar_4
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/ColaboradorRequest"
+        required: true
+      responses:
+        "201":
+          description: Colaborador cadastrado com sucesso
+          content:
+            '*/*':
+              schema:
+                $ref: "#/components/schemas/ColaboradorResponse"
+        "400":
+          description: Pessoa inativa ou dados inválidos
+          content:
+            '*/*':
+              schema:
+                $ref: "#/components/schemas/ApiError"
+        "404":
+          description: Pessoa não encontrada
+          content:
+            '*/*':
+              schema:
+                $ref: "#/components/schemas/ApiError"
+        "409":
+          description: Pessoa já cadastrada como colaborador ou matrícula duplicada
+          content:
+            '*/*':
+              schema:
+                $ref: "#/components/schemas/ApiError"
+  /api/clientes:
+    get:
+      tags:
+      - Clientes
+      summary: Pesquisar clientes
+      description: "Lista clientes com paginação, ordenação e filtros opcionais."
+      operationId: pesquisar_3
+      parameters:
+      - name: pagina
+        in: query
+        description: "Número da página, começando em zero"
+        required: false
+        schema:
+          type: integer
+          format: int32
+          default: 0
+        example: 0
+      - name: tamanho
+        in: query
+        description: "Quantidade de itens por página, de 1 a 100"
+        required: false
+        schema:
+          type: integer
+          format: int32
+          default: 10
+        example: 10
+      - name: ordenarPor
+        in: query
+        description: Campo usado para ordenação
+        required: false
+        schema:
+          type: string
+          default: id
+        example: id
+      - name: direcao
+        in: query
+        description: "Direção da ordenação: asc ou desc"
+        required: false
+        schema:
+          type: string
+          default: asc
+        example: asc
+      - name: nome
+        in: query
+        description: Filtra pelo nome da pessoa
+        required: false
+        schema:
+          type: string
+        example: Bruno
+      - name: cpf
+        in: query
+        description: Filtra pelo CPF da pessoa
+        required: false
+        schema:
+          type: string
+        example: 52998224725
+      - name: status
+        in: query
+        description: Filtra pela situação da pessoa
+        required: false
+        schema:
+          type: string
+          enum:
+          - ATIVO
+          - INATIVO
+        example: ATIVO
+      responses:
+        "200":
+          description: Lista de clientes retornada
+          content:
+            '*/*':
+              schema:
+                $ref: "#/components/schemas/PageResponseClienteResponse"
+        "400":
+          description: Parâmetros inválidos
+          content:
+            '*/*':
+              schema:
+                $ref: "#/components/schemas/ApiError"
+    post:
+      tags:
+      - Clientes
+      summary: Cadastrar cliente
+      description: Associa o papel de cliente a uma pessoa ativa já cadastrada.
+      operationId: cadastrar_5
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/ClienteRequest"
+        required: true
+      responses:
+        "201":
+          description: Cliente cadastrado com sucesso
+          content:
+            '*/*':
+              schema:
+                $ref: "#/components/schemas/ClienteResponse"
+        "400":
+          description: Pessoa inativa ou dados inválidos
+          content:
+            '*/*':
+              schema:
+                $ref: "#/components/schemas/ApiError"
+        "404":
+          description: Pessoa não encontrada
+          content:
+            '*/*':
+              schema:
+                $ref: "#/components/schemas/ApiError"
+        "409":
+          description: Pessoa já possui cadastro de cliente
+          content:
+            '*/*':
+              schema:
+                $ref: "#/components/schemas/ApiError"
   /api/produtos/{id}/inativar:
     patch:
       tags:
@@ -747,13 +1608,71 @@ paths:
             '*/*':
               schema:
                 $ref: "#/components/schemas/ApiError"
+  /api/pessoas/{id}/inativar:
+    patch:
+      tags:
+      - Pessoas
+      summary: Inativar pessoa
+      description: Inativa uma pessoa cadastrada.
+      operationId: inativar_1
+      parameters:
+      - name: id
+        in: path
+        description: Identificador da pessoa
+        required: true
+        schema:
+          type: integer
+          format: int64
+        example: 1
+      responses:
+        "200":
+          description: Pessoa inativada
+          content:
+            '*/*':
+              schema:
+                $ref: "#/components/schemas/PessoaResponse"
+        "404":
+          description: Pessoa não encontrada
+          content:
+            '*/*':
+              schema:
+                $ref: "#/components/schemas/ApiError"
+  /api/pessoas/{id}/ativar:
+    patch:
+      tags:
+      - Pessoas
+      summary: Ativar pessoa
+      description: Ativa uma pessoa cadastrada.
+      operationId: ativar_1
+      parameters:
+      - name: id
+        in: path
+        description: Identificador da pessoa
+        required: true
+        schema:
+          type: integer
+          format: int64
+        example: 1
+      responses:
+        "200":
+          description: Pessoa ativada
+          content:
+            '*/*':
+              schema:
+                $ref: "#/components/schemas/PessoaResponse"
+        "404":
+          description: Pessoa não encontrada
+          content:
+            '*/*':
+              schema:
+                $ref: "#/components/schemas/ApiError"
   /api/grupos-produtos/{id}/inativar:
     patch:
       tags:
       - Grupos de produtos
       summary: Inativar grupo de produtos
       description: Inativa um grupo de produtos identificado pelo ID.
-      operationId: inativar_1
+      operationId: inativar_2
       parameters:
       - name: id
         in: path
@@ -792,7 +1711,7 @@ paths:
       - Grupos de produtos
       summary: Ativar grupo de produtos
       description: Ativa um grupo de produtos identificado pelo ID.
-      operationId: ativar_1
+      operationId: ativar_2
       parameters:
       - name: id
         in: path
@@ -825,6 +1744,35 @@ paths:
                     message: Grupo não encontrado
                     path: /api/grupos-produtos/999/ativar
                     fields: {}
+  /api/vendas/{id}:
+    get:
+      tags:
+      - Vendas
+      summary: Consultar venda
+      description: "Retorna os dados completos de uma venda, incluindo seus itens."
+      operationId: buscarPorId_5
+      parameters:
+      - name: id
+        in: path
+        description: Identificador da venda
+        required: true
+        schema:
+          type: integer
+          format: int64
+        example: 1
+      responses:
+        "200":
+          description: Venda encontrada
+          content:
+            '*/*':
+              schema:
+                $ref: "#/components/schemas/VendaResponse"
+        "404":
+          description: Venda não encontrada
+          content:
+            '*/*':
+              schema:
+                $ref: "#/components/schemas/ApiError"
   /api/health:
     get:
       tags:
@@ -837,6 +1785,49 @@ paths:
             '*/*':
               schema:
                 type: string
+  /api/vendas/{vendaId}/itens/{itemId}:
+    delete:
+      tags:
+      - Vendas
+      summary: Remover item da venda
+      description: Remove um item de uma venda que ainda esteja aberta.
+      operationId: removerItem
+      parameters:
+      - name: vendaId
+        in: path
+        description: Identificador da venda
+        required: true
+        schema:
+          type: integer
+          format: int64
+        example: 1
+      - name: itemId
+        in: path
+        description: Identificador do item
+        required: true
+        schema:
+          type: integer
+          format: int64
+        example: 1
+      responses:
+        "200":
+          description: Item removido com sucesso
+          content:
+            '*/*':
+              schema:
+                $ref: "#/components/schemas/VendaResponse"
+        "400":
+          description: Item não encontrado ou venda não está aberta
+          content:
+            '*/*':
+              schema:
+                $ref: "#/components/schemas/ApiError"
+        "404":
+          description: Venda não encontrada
+          content:
+            '*/*':
+              schema:
+                $ref: "#/components/schemas/ApiError"
 components:
   schemas:
     ProdutoUpdateRequest:
@@ -982,6 +1973,79 @@ components:
           type: string
           description: Razão social do fornecedor do produto
           example: Fornecedor Esportivo LTDA
+    PessoaRequest:
+      type: object
+      description: Dados necessários para cadastrar uma pessoa
+      properties:
+        nome:
+          type: string
+          description: Nome completo da pessoa
+          example: Bruno Henrique
+          maxLength: 150
+          minLength: 0
+        email:
+          type: string
+          format: email
+          description: E-mail da pessoa
+          example: bruno@email.com
+          maxLength: 180
+          minLength: 0
+        cpf:
+          type: string
+          description: "CPF contendo exatamente 11 dígitos, sem pontuação"
+          example: "52998224725"
+          minLength: 1
+          pattern: "\\d{11}"
+      required:
+      - cpf
+      - email
+      - nome
+    PessoaResponse:
+      type: object
+      description: Dados retornados de uma pessoa
+      properties:
+        id:
+          type: integer
+          format: int64
+          description: Identificador da pessoa
+          example: 1
+        nome:
+          type: string
+          description: Nome completo
+          example: Bruno Henrique
+        email:
+          type: string
+          description: E-mail
+          example: bruno@email.com
+        cpf:
+          type: string
+          description: CPF com 11 dígitos
+          example: "52998224725"
+        dataCadastro:
+          type: string
+          format: date
+          description: Data de cadastro
+          example: 2026-10-31
+        status:
+          type: string
+          description: Status da pessoa
+          enum:
+          - ATIVO
+          - INATIVO
+          example: ATIVO
+    StatusRequest:
+      type: object
+      description: Dados necessários para alterar o status de uma pessoa
+      properties:
+        status:
+          type: string
+          description: Novo status da pessoa
+          enum:
+          - ATIVO
+          - INATIVO
+          example: ATIVO
+      required:
+      - status
     GrupoProdutoRequest:
       type: object
       description: Dados necessários para cadastrar ou editar um grupo de produtos
@@ -1014,6 +2078,208 @@ components:
           - ATIVO
           - INATIVO
           example: ATIVO
+    ColaboradorAtualizacaoRequest:
+      type: object
+      description: Dados para atualizar o cadastro de um colaborador
+      properties:
+        matricula:
+          type: string
+          description: Matrícula do colaborador
+          example: MAT-002
+          maxLength: 20
+          minLength: 0
+        funcao:
+          type: string
+          description: Função exercida pelo colaborador
+          enum:
+          - VENDEDOR
+          - ESTOQUISTA
+          - GERENTE
+          - ADMINISTRATIVO
+          example: VENDEDOR
+    ColaboradorResponse:
+      type: object
+      description: Dados retornados de um colaborador
+      properties:
+        id:
+          type: integer
+          format: int64
+          example: 1
+        pessoaId:
+          type: integer
+          format: int64
+          example: 1
+        nome:
+          type: string
+          example: Bruno Henrique
+        email:
+          type: string
+          example: bruno@email.com
+        cpf:
+          type: string
+          example: "52998224725"
+        status:
+          type: string
+          enum:
+          - ATIVO
+          - INATIVO
+          example: ATIVO
+        matricula:
+          type: string
+          example: MAT-001
+        funcao:
+          type: string
+          enum:
+          - VENDEDOR
+          - ESTOQUISTA
+          - GERENTE
+          - ADMINISTRATIVO
+          example: VENDEDOR
+        dataAdmissao:
+          type: string
+          format: date
+          example: 2026-01-01
+    ClienteAtualizacaoRequest:
+      type: object
+      description: Dados para atualizar o cadastro de um cliente
+      properties:
+        telefone:
+          type: string
+          description: Telefone de contato do cliente
+          example: "17999999999"
+          maxLength: 30
+          minLength: 0
+    ClienteResponse:
+      type: object
+      description: Dados retornados de um cliente
+      properties:
+        id:
+          type: integer
+          format: int64
+          example: 1
+        pessoaId:
+          type: integer
+          format: int64
+          example: 1
+        nome:
+          type: string
+          example: Bruno Henrique
+        email:
+          type: string
+          example: bruno@email.com
+        cpf:
+          type: string
+          example: "52998224725"
+        status:
+          type: string
+          enum:
+          - ATIVO
+          - INATIVO
+          example: ATIVO
+        telefone:
+          type: string
+          example: "17999999999"
+    VendaRequest:
+      type: object
+      description: Dados necessários para abrir uma venda
+      properties:
+        clienteId:
+          type: integer
+          format: int64
+          description: Identificador do cliente
+          example: 1
+          exclusiveMinimum: 0
+        vendedorId:
+          type: integer
+          format: int64
+          description: Identificador do colaborador vendedor
+          example: 1
+          exclusiveMinimum: 0
+      required:
+      - clienteId
+      - vendedorId
+    ItemVendaResponse:
+      type: object
+      description: Dados retornados de um item da venda
+      properties:
+        id:
+          type: integer
+          format: int64
+          example: 1
+        produtoId:
+          type: integer
+          format: int64
+          example: 1
+        produtoDescricao:
+          type: string
+          example: Chuteira de campo
+        quantidade:
+          type: number
+          example: 2.0
+        valorUnitario:
+          type: number
+          example: 299.9
+        subtotal:
+          type: number
+          example: 599.8
+    VendaResponse:
+      type: object
+      description: Dados completos de uma venda
+      properties:
+        id:
+          type: integer
+          format: int64
+          example: 1
+        clienteId:
+          type: integer
+          format: int64
+          example: 1
+        clienteNome:
+          type: string
+          example: Bruno Henrique
+        vendedorId:
+          type: integer
+          format: int64
+          example: 1
+        vendedorNome:
+          type: string
+          example: Carlos Silva
+        dataVenda:
+          type: string
+          format: date-time
+          example: 2026-11-04T20:00:00
+        status:
+          type: string
+          enum:
+          - ABERTA
+          - FINALIZADA
+          - CANCELADA
+          example: ABERTA
+        itens:
+          type: array
+          items:
+            $ref: "#/components/schemas/ItemVendaResponse"
+        total:
+          type: number
+          example: 599.8
+    ItemVendaRequest:
+      type: object
+      description: Dados necessários para adicionar um item à venda
+      properties:
+        produtoId:
+          type: integer
+          format: int64
+          description: Identificador do produto
+          example: 1
+          exclusiveMinimum: 0
+        quantidade:
+          type: number
+          description: Quantidade do produto
+          example: 2.0
+          minimum: 0.001
+      required:
+      - produtoId
+      - quantidade
     ProdutoRequest:
       type: object
       description: Dados necessários para cadastrar um produto esportivo
@@ -1086,7 +2352,7 @@ components:
           type: string
           description: "CNPJ do fornecedor contendo exatamente 14 dígitos, sem pontuaç\
             ão"
-          example: "12345678000199"
+          example: "11222333000181"
           minLength: 1
           pattern: "\\d{14}"
       required:
@@ -1116,6 +2382,111 @@ components:
           - ATIVO
           - INATIVO
           example: ATIVO
+    ColaboradorRequest:
+      type: object
+      description: Dados necessários para cadastrar um colaborador
+      properties:
+        pessoaId:
+          type: integer
+          format: int64
+          description: Identificador da pessoa associada ao colaborador
+          example: 1
+          exclusiveMinimum: 0
+        matricula:
+          type: string
+          description: Matrícula do colaborador
+          example: MAT-001
+          maxLength: 20
+          minLength: 0
+        funcao:
+          type: string
+          description: Função exercida pelo colaborador
+          enum:
+          - VENDEDOR
+          - ESTOQUISTA
+          - GERENTE
+          - ADMINISTRATIVO
+          example: VENDEDOR
+        dataAdmissao:
+          type: string
+          format: date
+          description: Data de admissão do colaborador
+          example: 2026-01-01
+      required:
+      - dataAdmissao
+      - funcao
+      - matricula
+      - pessoaId
+    ClienteRequest:
+      type: object
+      description: Dados necessários para cadastrar um cliente
+      properties:
+        pessoaId:
+          type: integer
+          format: int64
+          description: Identificador da pessoa associada ao cliente
+          example: 1
+          exclusiveMinimum: 0
+        telefone:
+          type: string
+          description: Telefone de contato do cliente
+          example: "17999999999"
+          maxLength: 30
+          minLength: 0
+      required:
+      - pessoaId
+    PageResponseVendaResumoResponse:
+      type: object
+      properties:
+        content:
+          type: array
+          items:
+            $ref: "#/components/schemas/VendaResumoResponse"
+        page:
+          type: integer
+          format: int32
+        size:
+          type: integer
+          format: int32
+        totalElements:
+          type: integer
+          format: int64
+        totalPages:
+          type: integer
+          format: int32
+    VendaResumoResponse:
+      type: object
+      description: Resumo dos dados de uma venda
+      properties:
+        id:
+          type: integer
+          format: int64
+          example: 1
+        clienteId:
+          type: integer
+          format: int64
+          example: 1
+        clienteNome:
+          type: string
+          example: Bruno Henrique
+        vendedorId:
+          type: integer
+          format: int64
+          example: 1
+        vendedorNome:
+          type: string
+          example: Carlos Silva
+        dataVenda:
+          type: string
+          format: date-time
+          example: 2026-11-04T20:00:00
+        status:
+          type: string
+          enum:
+          - ABERTA
+          - FINALIZADA
+          - CANCELADA
+          example: ABERTA
     PageResponseProdutoResponse:
       type: object
       properties:
@@ -1135,6 +2506,25 @@ components:
         totalPages:
           type: integer
           format: int32
+    PageResponsePessoaResponse:
+      type: object
+      properties:
+        content:
+          type: array
+          items:
+            $ref: "#/components/schemas/PessoaResponse"
+        page:
+          type: integer
+          format: int32
+        size:
+          type: integer
+          format: int32
+        totalElements:
+          type: integer
+          format: int64
+        totalPages:
+          type: integer
+          format: int32
     PageResponseGrupoProdutoResponse:
       type: object
       properties:
@@ -1142,6 +2532,44 @@ components:
           type: array
           items:
             $ref: "#/components/schemas/GrupoProdutoResponse"
+        page:
+          type: integer
+          format: int32
+        size:
+          type: integer
+          format: int32
+        totalElements:
+          type: integer
+          format: int64
+        totalPages:
+          type: integer
+          format: int32
+    PageResponseColaboradorResponse:
+      type: object
+      properties:
+        content:
+          type: array
+          items:
+            $ref: "#/components/schemas/ColaboradorResponse"
+        page:
+          type: integer
+          format: int32
+        size:
+          type: integer
+          format: int32
+        totalElements:
+          type: integer
+          format: int64
+        totalPages:
+          type: integer
+          format: int32
+    PageResponseClienteResponse:
+      type: object
+      properties:
+        content:
+          type: array
+          items:
+            $ref: "#/components/schemas/ClienteResponse"
         page:
           type: integer
           format: int32

@@ -1,0 +1,8 @@
+$kind: http-request
+description: ""
+url: http://localhost:8080/api/vendas/1/itens
+method: POST
+body:
+  type: json
+  content: "{\r\n  \"produtoId\": 1,\r\n  \"quantidade\": 2.000\r\n}"
+order: 4485315013077204

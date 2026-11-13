@@ -1,0 +1,5 @@
+$kind: http-request
+description: ""
+url: http://localhost:8080/api/colaboradores/1
+method: GET
+order: 4485315013077103

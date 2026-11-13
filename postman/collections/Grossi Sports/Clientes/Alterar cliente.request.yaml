@@ -1,0 +1,8 @@
+$kind: http-request
+description: ""
+url: http://localhost:8080/api/clientes/1
+method: PUT
+body:
+  type: json
+  content: "{\r\n  \"telefone\": \"17988887777\"\r\n}"
+order: 4485315013077004

@@ -1,15 +1,14 @@
-
 package com.curso.grossisports;
 
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.webmvc.test.autoconfigure.AutoConfigureMockMvc;
 import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.boot.webmvc.test.autoconfigure.AutoConfigureMockMvc;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.web.servlet.MockMvc;
 
+import static org.hamcrest.Matchers.startsWith;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
-import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.content;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
@@ -25,10 +24,32 @@ class OpenApiTest {
     void deveDisponibilizarDocumentacaoOpenApi() throws Exception {
         mockMvc.perform(get("/v3/api-docs"))
             .andExpect(status().isOk())
-            .andExpect(content().contentTypeCompatibleWith("application/json"))
-            .andExpect(jsonPath("$.openapi").exists())
+            .andExpect(jsonPath("$.openapi", startsWith("3.")))
             .andExpect(jsonPath("$.paths['/api/produtos']").exists())
-            .andExpect(jsonPath("$.paths['/api/produtos/{id}']").exists());
+            .andExpect(jsonPath("$.paths['/api/produtos/{id}']").exists())
+            .andExpect(jsonPath("$.paths['/api/pessoas'].get").exists())
+            .andExpect(jsonPath("$.paths['/api/pessoas'].post").exists())
+            .andExpect(jsonPath("$.paths['/api/pessoas/{id}/status'].put")
+                .exists())
+            .andExpect(jsonPath("$.paths['/api/clientes'].get").exists())
+            .andExpect(jsonPath("$.paths['/api/clientes'].post").exists())
+            .andExpect(jsonPath("$.paths['/api/clientes/{id}'].put")
+                .exists())
+            .andExpect(jsonPath("$.paths['/api/colaboradores'].get")
+                .exists())
+            .andExpect(jsonPath("$.paths['/api/colaboradores'].post")
+                .exists())
+            .andExpect(jsonPath("$.paths['/api/vendas'].get").exists())
+            .andExpect(jsonPath("$.paths['/api/vendas/{id}/itens'].post")
+                .exists())
+            .andExpect(jsonPath("$.paths['/api/vendas/{id}/finalizacao'].post")
+                .exists())
+            .andExpect(jsonPath("$.components.schemas.VendaResponse")
+                .exists())
+            .andExpect(jsonPath("$.components.schemas.ClienteResponse")
+                .exists())
+            .andExpect(jsonPath("$.components.schemas.ColaboradorResponse")
+                .exists())
+            .andExpect(jsonPath("$.components.schemas.ApiError").exists());
     }
 }
-

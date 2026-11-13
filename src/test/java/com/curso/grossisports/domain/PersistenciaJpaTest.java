@@ -52,15 +52,15 @@ class PersistenciaJpaTest {
     }
 
    @Test
-void deveTerDezenoveChangeSetsRegistrados() {
-    Long quantidade = ((Number) entityManager
-        .createNativeQuery(
-            "SELECT COUNT(*) FROM databasechangelog")
-        .getSingleResult())
-        .longValue();
+   void deveTerTrintaECincoChangeSetsRegistrados() {
+       Long quantidade = ((Number) entityManager
+           .createNativeQuery(
+               "SELECT COUNT(*) FROM databasechangelog")
+           .getSingleResult())
+           .longValue();
 
-    assertEquals(19L, quantidade);
-}
+       assertEquals(35L, quantidade);
+   }
 
     @Test
     @Transactional

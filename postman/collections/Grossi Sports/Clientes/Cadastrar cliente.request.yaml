@@ -1,0 +1,8 @@
+$kind: http-request
+description: ""
+url: http://localhost:8080/api/clientes
+method: POST
+body:
+  type: json
+  content: "{\r\n  \"pessoaId\": 1,\r\n  \"telefone\": \"17999999999\"\r\n}"
+order: 4485315013077001
