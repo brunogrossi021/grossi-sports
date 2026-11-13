@@ -14,6 +14,8 @@ import com.curso.grossisports.repository.ClienteRepository;
 import com.curso.grossisports.repository.ColaboradorRepository;
 import com.curso.grossisports.repository.ProdutoRepository;
 import com.curso.grossisports.repository.VendaRepository;
+import jakarta.persistence.EntityManager;
+import jakarta.persistence.LockModeType;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
@@ -24,6 +26,8 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.math.BigDecimal;
 import java.time.LocalDate;
+import java.util.Comparator;
+import java.util.List;
 import java.util.Set;
 
 @Service
@@ -39,17 +43,20 @@ public class VendaService {
     private final ClienteRepository clienteRepository;
     private final ColaboradorRepository colaboradorRepository;
     private final ProdutoRepository produtoRepository;
+    private final EntityManager entityManager;
 
     public VendaService(
         VendaRepository vendaRepository,
         ClienteRepository clienteRepository,
         ColaboradorRepository colaboradorRepository,
-        ProdutoRepository produtoRepository
+        ProdutoRepository produtoRepository,
+        EntityManager entityManager
     ) {
         this.vendaRepository = vendaRepository;
         this.clienteRepository = clienteRepository;
         this.colaboradorRepository = colaboradorRepository;
         this.produtoRepository = produtoRepository;
+        this.entityManager = entityManager;
     }
 
     @Transactional
@@ -199,8 +206,17 @@ public class VendaService {
             venda.getCliente(),
             venda.getColaborador());
 
-        for (ItemVenda item : venda.getItens()) {
+        List<ItemVenda> itensOrdenados = venda.getItens().stream()
+            .sorted(Comparator.comparing(
+                item -> item.getProduto().getId()))
+            .toList();
+
+        for (ItemVenda item : itensOrdenados) {
             Produto produto = item.getProduto();
+
+            entityManager.refresh(
+                produto,
+                LockModeType.PESSIMISTIC_WRITE);
 
             if (produto.getStatus() != Status.ATIVO) {
                 throw new IllegalArgumentException(

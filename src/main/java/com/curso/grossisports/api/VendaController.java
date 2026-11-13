@@ -218,7 +218,7 @@ public class VendaController {
 
     @Operation(
         summary = "Finalizar venda",
-        description = "Valida toda a venda e baixa o estoque de todos os itens na mesma transação."
+        description = "Valida toda a venda, bloqueia os produtos em ordem determinística e baixa o estoque de todos os itens na mesma transação."
     )
     @ApiResponses({
         @ApiResponse(responseCode = "200", description = "Venda finalizada com sucesso"),

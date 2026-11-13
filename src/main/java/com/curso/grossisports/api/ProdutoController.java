@@ -210,7 +210,7 @@ public class ProdutoController {
 
     @Operation(
         summary = "Registrar entrada de estoque",
-        description = "Adiciona uma quantidade ao estoque do produto informado."
+        description = "Bloqueia o produto e adiciona uma quantidade ao estoque do produto informado."
     )
     @ApiResponses({
         @ApiResponse(responseCode = "200", description = "Entrada registrada com sucesso"),
@@ -231,7 +231,7 @@ public class ProdutoController {
 
     @Operation(
         summary = "Registrar saída de estoque",
-        description = "Retira uma quantidade do estoque do produto informado, respeitando as regras de estoque."
+        description = "Bloqueia o produto e retira uma quantidade do estoque do produto informado, respeitando as regras de estoque."
     )
     @ApiResponses({
         @ApiResponse(responseCode = "200", description = "Saída registrada com sucesso"),

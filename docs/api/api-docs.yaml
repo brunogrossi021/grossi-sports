@@ -730,8 +730,8 @@ paths:
       tags:
       - Vendas
       summary: Finalizar venda
-      description: Valida toda a venda e baixa o estoque de todos os itens na mesma
-        transação.
+      description: Valida toda a venda, bloqueia os produtos em ordem determinística
+        e baixa o estoque de todos os itens na mesma transação.
       operationId: finalizar
       parameters:
       - name: id
@@ -940,8 +940,8 @@ paths:
       tags:
       - Produtos
       summary: Registrar saída de estoque
-      description: "Retira uma quantidade do estoque do produto informado, respeitando\
-        \ as regras de estoque."
+      description: Bloqueia o produto e retira uma quantidade do estoque do produto
+        informado, respeitando as regras de estoque.
       operationId: retirarEstoque
       parameters:
       - name: id
@@ -982,7 +982,8 @@ paths:
       tags:
       - Produtos
       summary: Registrar entrada de estoque
-      description: Adiciona uma quantidade ao estoque do produto informado.
+      description: Bloqueia o produto e adiciona uma quantidade ao estoque do produto
+        informado.
       operationId: receberEstoque
       parameters:
       - name: id
