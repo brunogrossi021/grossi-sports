@@ -2,7 +2,7 @@
 
 ## 1. Objetivo
 
-A documentação da API Grossi Sports descreve os recursos disponíveis para o gerenciamento de produtos esportivos, grupos de produtos, fornecedores, movimentações de estoque, pessoas, clientes, colaboradores e vendas. A especificação OpenAPI permite consultar os endpoints, os parâmetros, os dados de entrada e saída e as respostas HTTP documentadas.
+A documentação da API Grossi Sports descreve os recursos disponíveis para o gerenciamento de produtos esportivos, grupos de produtos, fornecedores, movimentações de estoque, pessoas, clientes, colaboradores, vendas e contas de acesso. A especificação OpenAPI permite consultar os endpoints, os parâmetros, os dados de entrada e saída, os esquemas de segurança e as respostas HTTP documentadas.
 
 ## 2. Operações e respostas HTTP
 
@@ -50,6 +50,9 @@ A tabela apresenta as operações identificadas na especificação OpenAPI do pr
 | `/api/vendas/{id}/finalizacao` | POST | 200 OK | 400 Bad Request, 404 Not Found |
 | `/api/vendas/{id}/cancelamento` | POST | 200 OK | 400 Bad Request, 404 Not Found |
 | `/api/health` | GET | 200 OK | Não especificados na documentação |
+| `/api/contas-acesso` | POST | 201 Created | 400 Bad Request, 409 Conflict |
+| `/api/contas-acesso/me` | GET | 200 OK | 404 Not Found |
+| `/api/contas-acesso/me/senha` | PUT | 204 No Content | 400 Bad Request, 404 Not Found |
 
 **Observação:** os códigos apresentados correspondem às respostas registradas no arquivo OpenAPI. Quando a documentação não apresenta um erro para determinada operação, isso não significa necessariamente que o erro seja impossível; significa apenas que ele não está especificado nesse contrato.
 
@@ -98,3 +101,27 @@ operações e respostas documentadas.
 Essa revisão demonstra que a documentação auxiliar precisa ser
 comparada com o contrato real, pois informações desatualizadas podem
 confundir quem consome a API.
+
+## 6. Segurança e autenticação
+
+A partir da Aula 12 a API é protegida com Spring Security no modo
+*stateless*, usando **HTTP Basic**. O contrato OpenAPI declara o
+esquema de segurança `basicAuth` (`type: http`, `scheme: basic`) e o
+aplica globalmente.
+
+- **Rotas públicas:** `GET /api/health`, `POST /api/contas-acesso`,
+  `/v3/api-docs/**`, `/v3/api-docs.yaml`, `/swagger-ui.html` e
+  `/swagger-ui/**`.
+- **Rotas protegidas:** todas as demais exigem credencial válida e
+  respondem `401 Unauthorized` sem autenticação.
+
+O `POST /api/contas-acesso` é um **autocadastro didático** que cria a
+pessoa e a conta de acesso na mesma transação, sempre com o perfil
+`OPERADOR`. O cliente não informa `pessoaId` nem perfil de acesso, o
+que impede vincular credenciais a uma pessoa já existente. As
+respostas nunca contêm senha ou hash.
+
+> HTTP Basic transmite a credencial codificada em Base64 em cada
+> requisição; por isso, em produção, só deve ser usado sobre HTTPS/TLS.
+> O cadastro público inicial é uma simplificação didática, não um
+> fluxo pronto para produção.

@@ -3,4 +3,6 @@ name: Consultar saúde da API
 description: ""
 url: http://localhost:8080/api/health
 method: GET
+auth:
+  type: noauth
 order: 1790110737329

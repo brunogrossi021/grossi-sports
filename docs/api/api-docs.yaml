@@ -7,11 +7,17 @@ info:
 servers:
 - url: http://localhost:8080
   description: Generated server url
+security:
+- basicAuth: []
 tags:
 - name: Clientes
   description: Papel comercial associado a uma pessoa
 - name: Colaboradores
   description: Vínculo profissional e função de negócio
+- name: Infraestrutura
+  description: Rotas públicas de verificação da API
+- name: Contas de acesso
+  description: Autocadastro didático e dados da conta autenticada
 - name: Fornecedores
   description: Gerenciamento de fornecedores de produtos esportivos
 - name: Grupos de produtos
@@ -407,6 +413,34 @@ paths:
                     message: Grupo possui produtos associados
                     path: /api/grupos-produtos/1
                     fields: {}
+  /api/contas-acesso/me/senha:
+    put:
+      tags:
+      - Contas de acesso
+      summary: Alterar minha senha
+      description: Exige a senha atual e grava apenas o novo hash.
+      operationId: alterarSenha
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/AlterarSenhaContaRequest"
+        required: true
+      responses:
+        "204":
+          description: Senha alterada
+        "400":
+          description: Senha atual inválida ou nova senha inválida
+          content:
+            '*/*':
+              schema:
+                $ref: "#/components/schemas/ApiError"
+        "404":
+          description: Conta de acesso não encontrada
+          content:
+            '*/*':
+              schema:
+                $ref: "#/components/schemas/ApiError"
   /api/colaboradores/{id}:
     get:
       tags:
@@ -730,8 +764,8 @@ paths:
       tags:
       - Vendas
       summary: Finalizar venda
-      description: Valida toda a venda, bloqueia os produtos em ordem determinística
-        e baixa o estoque de todos os itens na mesma transação.
+      description: "Valida toda a venda, bloqueia os produtos em ordem determinística\
+        \ e baixa o estoque de todos os itens na mesma transação."
       operationId: finalizar
       parameters:
       - name: id
@@ -940,8 +974,8 @@ paths:
       tags:
       - Produtos
       summary: Registrar saída de estoque
-      description: Bloqueia o produto e retira uma quantidade do estoque do produto
-        informado, respeitando as regras de estoque.
+      description: "Bloqueia o produto e retira uma quantidade do estoque do produto\
+        \ informado, respeitando as regras de estoque."
       operationId: retirarEstoque
       parameters:
       - name: id
@@ -1314,6 +1348,41 @@ paths:
                     message: CNPJ já cadastrado
                     path: /api/fornecedores
                     fields: {}
+  /api/contas-acesso:
+    post:
+      tags:
+      - Contas de acesso
+      summary: Autocadastrar conta
+      description: "Cria a pessoa e a conta de acesso na mesma transação, sempre com\
+        \ o perfil OPERADOR. Rota pública apenas para fins didáticos de inicializaç\
+        ão."
+      operationId: cadastrar_4
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/ContaAcessoRequest"
+        required: true
+      responses:
+        "201":
+          description: Conta criada com sucesso
+          content:
+            '*/*':
+              schema:
+                $ref: "#/components/schemas/ContaAcessoResponse"
+        "400":
+          description: "Dados, CPF ou senha inválidos"
+          content:
+            '*/*':
+              schema:
+                $ref: "#/components/schemas/ApiError"
+        "409":
+          description: "Login, CPF ou e-mail já cadastrado"
+          content:
+            '*/*':
+              schema:
+                $ref: "#/components/schemas/ApiError"
+      security: []
   /api/colaboradores:
     get:
       tags:
@@ -1403,7 +1472,7 @@ paths:
       - Colaboradores
       summary: Cadastrar colaborador
       description: Associa um vínculo profissional a uma pessoa ativa.
-      operationId: cadastrar_4
+      operationId: cadastrar_5
       requestBody:
         content:
           application/json:
@@ -1519,7 +1588,7 @@ paths:
       - Clientes
       summary: Cadastrar cliente
       description: Associa o papel de cliente a uma pessoa ativa já cadastrada.
-      operationId: cadastrar_5
+      operationId: cadastrar_6
       requestBody:
         content:
           application/json:
@@ -1777,7 +1846,9 @@ paths:
   /api/health:
     get:
       tags:
-      - health-controller
+      - Infraestrutura
+      summary: Verificar saúde da API
+      description: Rota pública usada para verificar se a API responde.
       operationId: health
       responses:
         "200":
@@ -1786,6 +1857,27 @@ paths:
             '*/*':
               schema:
                 type: string
+      security: []
+  /api/contas-acesso/me:
+    get:
+      tags:
+      - Contas de acesso
+      summary: Consultar minha conta
+      description: "Retorna os dados da conta autenticada, sem expor senha ou hash."
+      operationId: buscarAtual
+      responses:
+        "200":
+          description: Conta retornada
+          content:
+            '*/*':
+              schema:
+                $ref: "#/components/schemas/ContaAcessoResponse"
+        "404":
+          description: Conta de acesso não encontrada
+          content:
+            '*/*':
+              schema:
+                $ref: "#/components/schemas/ApiError"
   /api/vendas/{vendaId}/itens/{itemId}:
     delete:
       tags:
@@ -2079,6 +2171,23 @@ components:
           - ATIVO
           - INATIVO
           example: ATIVO
+    AlterarSenhaContaRequest:
+      type: object
+      description: Dados para alterar a senha da própria conta
+      properties:
+        senhaAtual:
+          type: string
+          description: Senha atual da conta
+          minLength: 1
+        novaSenha:
+          type: string
+          description: Nova senha com no mínimo 12 caracteres e no máximo 72 bytes
+            em UTF-8
+          maxLength: 72
+          minLength: 12
+      required:
+      - novaSenha
+      - senhaAtual
     ColaboradorAtualizacaoRequest:
       type: object
       description: Dados para atualizar o cadastro de um colaborador
@@ -2383,6 +2492,89 @@ components:
           - ATIVO
           - INATIVO
           example: ATIVO
+    ContaAcessoRequest:
+      type: object
+      description: "Dados para o autocadastro: cria a pessoa e a conta de acesso na\
+        \ mesma requisição. Não aceita pessoa existente nem perfil de acesso."
+      properties:
+        nome:
+          type: string
+          description: Nome completo da pessoa
+          example: Ana Souza
+          maxLength: 150
+          minLength: 0
+        email:
+          type: string
+          format: email
+          description: E-mail da pessoa
+          example: ana.souza@example.com
+          maxLength: 180
+          minLength: 0
+        cpf:
+          type: string
+          description: "CPF contendo exatamente 11 dígitos, sem pontuação"
+          example: "52998224725"
+          minLength: 1
+          pattern: "\\d{11}"
+        login:
+          type: string
+          description: "Login de acesso, único e sem diferenciar maiúsculas"
+          example: ana.souza
+          maxLength: 80
+          minLength: 3
+          pattern: "^[A-Za-z0-9._-]+$"
+        senha:
+          type: string
+          description: Senha com no mínimo 12 caracteres e no máximo 72 bytes em UTF-8
+          example: uma-frase-senha-2026
+          maxLength: 72
+          minLength: 12
+      required:
+      - cpf
+      - email
+      - login
+      - nome
+      - senha
+    ContaAcessoResponse:
+      type: object
+      description: Conta autenticável; nunca contém senha ou hash
+      properties:
+        id:
+          type: integer
+          format: int64
+          description: Identificador da conta
+          example: 1
+        pessoaId:
+          type: integer
+          format: int64
+          description: Identificador da pessoa vinculada
+          example: 1
+        nomePessoa:
+          type: string
+          description: Nome da pessoa vinculada
+          example: Ana Souza
+        login:
+          type: string
+          description: Login de acesso
+          example: ana.souza
+        status:
+          type: string
+          description: Status da conta
+          enum:
+          - ATIVA
+          - BLOQUEADA
+          example: ATIVA
+        perfis:
+          type: array
+          description: Perfis de acesso concedidos
+          example:
+          - OPERADOR
+          items:
+            type: string
+            enum:
+            - OPERADOR
+            - ADMINISTRADOR
+          uniqueItems: true
     ColaboradorRequest:
       type: object
       description: Dados necessários para cadastrar um colaborador
@@ -2583,3 +2775,7 @@ components:
         totalPages:
           type: integer
           format: int32
+  securitySchemes:
+    basicAuth:
+      type: http
+      scheme: basic

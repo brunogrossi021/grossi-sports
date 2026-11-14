@@ -1,1 +1,15 @@
 $kind: collection
+variables:
+  - key: authLogin
+    value: operador.postman
+  - key: authPassword
+    value: PREENCHA_LOCALMENTE
+  - key: newPassword
+    value: PREENCHA_LOCALMENTE
+auth:
+  type: basic
+  credentials:
+    - key: username
+      value: "{{authLogin}}"
+    - key: password
+      value: "{{authPassword}}"

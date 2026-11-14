@@ -1,0 +1,9 @@
+$kind: http-request
+name: Alterar minha senha
+description: "Exige a senha atual e grava apenas o novo hash. Após executar, atualize a variável authPassword da coleção."
+url: http://localhost:8080/api/contas-acesso/me/senha
+method: PUT
+body:
+  type: json
+  content: "{\r\n  \"senhaAtual\": \"{{authPassword}}\",\r\n  \"novaSenha\": \"{{newPassword}}\"\r\n}"
+order: 4485315013079004
