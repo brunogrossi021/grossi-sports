@@ -25,3 +25,11 @@ Cada etapa será registrada no Git por meio de commits e tags, permitindo acompa
 API didática para gerenciamento de produtos esportivos, organizados por grupos de produto.
 
 O sistema permitirá o gerenciamento de grupos e produtos esportivos, incluindo informações como código, descrição, saldo em estoque e valor unitário.
+
+## Documentação
+
+- [Tema do projeto](docs/tema-do-projeto.md)
+- [Documentação OpenAPI](docs/api/documentacao-openapi.md)
+- [Autenticação com JWT](docs/autenticacao-jwt.md)
+- [Autorização por perfis](docs/autorizacao-perfis.md)
+- [Testes e cobertura (Aula 15)](docs/testes-cobertura.md)

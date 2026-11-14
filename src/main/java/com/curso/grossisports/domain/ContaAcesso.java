@@ -102,7 +102,7 @@ public class ContaAcesso {
                 "A conta deve possuir ao menos um perfil");
         }
 
-        if (novosPerfis.contains(null)) {
+        if (novosPerfis.stream().anyMatch(Objects::isNull)) {
             throw new IllegalArgumentException(
                 "Perfil é obrigatório");
         }
