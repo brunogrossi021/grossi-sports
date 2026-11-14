@@ -6,10 +6,10 @@ variables:
     value: PREENCHA_LOCALMENTE
   - key: newPassword
     value: PREENCHA_LOCALMENTE
+  - key: accessToken
+    value: ""
 auth:
-  type: basic
+  type: bearer
   credentials:
-    - key: username
-      value: "{{authLogin}}"
-    - key: password
-      value: "{{authPassword}}"
+    - key: token
+      value: "{{accessToken}}"

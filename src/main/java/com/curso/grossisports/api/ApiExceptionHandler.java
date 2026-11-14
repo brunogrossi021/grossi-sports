@@ -1,6 +1,7 @@
 package com.curso.grossisports.api;
 
 import com.curso.grossisports.api.dto.ApiError;
+import com.curso.grossisports.exception.CredenciaisInvalidasException;
 import com.curso.grossisports.exception.GrupoProdutoComProdutosException;
 import com.curso.grossisports.exception.RecursoDuplicadoException;
 import com.curso.grossisports.exception.RecursoNaoEncontradoException;
@@ -19,6 +20,18 @@ import java.util.Map;
 
 @RestControllerAdvice
 public class ApiExceptionHandler {
+
+    @ExceptionHandler(CredenciaisInvalidasException.class)
+    public ResponseEntity<ApiError> tratarCredenciaisInvalidas(
+        CredenciaisInvalidasException exception,
+        HttpServletRequest request) {
+
+        return criarResposta(
+            HttpStatus.UNAUTHORIZED,
+            exception.getMessage(),
+            request.getRequestURI(),
+            null);
+    }
 
     @ExceptionHandler(RecursoNaoEncontradoException.class)
     public ResponseEntity<ApiError> tratarNaoEncontrado(

@@ -1,6 +1,6 @@
 $kind: http-request
 name: Consultar minha conta
-description: "Retorna os dados da conta autenticada (HTTP Basic), sem expor senha ou hash."
+description: "Retorna os dados da conta autenticada (Bearer Token), sem expor senha ou hash."
 url: http://localhost:8080/api/contas-acesso/me
 method: GET
 order: 4485315013079003

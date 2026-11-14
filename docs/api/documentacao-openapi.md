@@ -2,7 +2,7 @@
 
 ## 1. Objetivo
 
-A documentação da API Grossi Sports descreve os recursos disponíveis para o gerenciamento de produtos esportivos, grupos de produtos, fornecedores, movimentações de estoque, pessoas, clientes, colaboradores, vendas e contas de acesso. A especificação OpenAPI permite consultar os endpoints, os parâmetros, os dados de entrada e saída, os esquemas de segurança e as respostas HTTP documentadas.
+A documentação da API Grossi Sports descreve os recursos disponíveis para o gerenciamento de produtos esportivos, grupos de produtos, fornecedores, movimentações de estoque, pessoas, clientes, colaboradores, vendas, contas de acesso e autenticação por token JWT. A especificação OpenAPI permite consultar os endpoints, os parâmetros, os dados de entrada e saída, os esquemas de segurança e as respostas HTTP documentadas.
 
 ## 2. Operações e respostas HTTP
 
@@ -53,6 +53,7 @@ A tabela apresenta as operações identificadas na especificação OpenAPI do pr
 | `/api/contas-acesso` | POST | 201 Created | 400 Bad Request, 409 Conflict |
 | `/api/contas-acesso/me` | GET | 200 OK | 404 Not Found |
 | `/api/contas-acesso/me/senha` | PUT | 204 No Content | 400 Bad Request, 404 Not Found |
+| `/api/autenticacao/login` | POST | 200 OK | 400 Bad Request, 401 Unauthorized |
 
 **Observação:** os códigos apresentados correspondem às respostas registradas no arquivo OpenAPI. Quando a documentação não apresenta um erro para determinada operação, isso não significa necessariamente que o erro seja impossível; significa apenas que ele não está especificado nesse contrato.
 
@@ -102,18 +103,33 @@ Essa revisão demonstra que a documentação auxiliar precisa ser
 comparada com o contrato real, pois informações desatualizadas podem
 confundir quem consome a API.
 
+Na Aula 13 o contrato foi regenerado a partir de `/v3/api-docs.yaml`
+após a substituição do esquema `basicAuth` por `bearerAuth` e a
+inclusão do endpoint `POST /api/autenticacao/login`. A tabela de
+operações e a seção de segurança foram atualizadas para refletir o
+novo fluxo de autenticação por token JWT.
+
 ## 6. Segurança e autenticação
 
-A partir da Aula 12 a API é protegida com Spring Security no modo
-*stateless*, usando **HTTP Basic**. O contrato OpenAPI declara o
-esquema de segurança `basicAuth` (`type: http`, `scheme: basic`) e o
-aplica globalmente.
+A partir da Aula 13 a API é protegida com Spring Security no modo
+*stateless*, usando **OAuth2 Resource Server** com **JWT Bearer**. O
+cliente envia login e senha uma única vez ao endpoint de autenticação;
+as chamadas seguintes apresentam apenas o token no cabeçalho
+`Authorization: Bearer <token>`.
 
-- **Rotas públicas:** `GET /api/health`, `POST /api/contas-acesso`,
+O contrato OpenAPI declara o esquema de segurança `bearerAuth`
+(`type: http`, `scheme: bearer`, `bearerFormat: JWT`) e o aplica
+globalmente.
+
+- **Rota pública de login:** `POST /api/autenticacao/login`, que recebe
+  `login` e `senha` e devolve `accessToken`, `tokenType`, `expiresIn` e
+  `expiresAt`. É pública porque o cliente ainda não possui token.
+- **Demais rotas públicas:** `GET /api/health`, `POST /api/contas-acesso`,
   `/v3/api-docs/**`, `/v3/api-docs.yaml`, `/swagger-ui.html` e
   `/swagger-ui/**`.
-- **Rotas protegidas:** todas as demais exigem credencial válida e
-  respondem `401 Unauthorized` sem autenticação.
+- **Rotas protegidas:** todas as demais exigem um JWT válido e respondem
+  `401 Unauthorized` sem token ou com token inválido. Isso inclui
+  `POST /api/pessoas`, que permanece autenticado.
 
 O `POST /api/contas-acesso` é um **autocadastro didático** que cria a
 pessoa e a conta de acesso na mesma transação, sempre com o perfil
@@ -121,7 +137,24 @@ pessoa e a conta de acesso na mesma transação, sempre com o perfil
 que impede vincular credenciais a uma pessoa já existente. As
 respostas nunca contêm senha ou hash.
 
-> HTTP Basic transmite a credencial codificada em Base64 em cada
-> requisição; por isso, em produção, só deve ser usado sobre HTTPS/TLS.
-> O cadastro público inicial é uma simplificação didática, não um
-> fluxo pronto para produção.
+### 6.1 Token JWT
+
+O token é um JWT assinado em **HS256** com os claims `iss`, `sub`,
+`jti`, `iat`, `exp` e `perfis`. A chave de assinatura é lida de
+`JWT_SECRET` (arquivo `.env`, fora do Git) e nunca é versionada. Os
+perfis são derivados exclusivamente das authorities do usuário
+autenticado, nunca do corpo da requisição.
+
+A validação do token verifica a **assinatura**, o **emissor** (`iss`) e
+a **expiração** (`exp`). Credenciais inválidas no login — login
+inexistente, senha incorreta ou conta bloqueada — produzem a mesma
+resposta `401` genérica, evitando revelar qual dado estava errado.
+
+> O token tem validade de **30 minutos**. Como a validação é local e
+> *stateless*, um token já emitido continua válido até expirar, mesmo
+> que a conta seja bloqueada nesse intervalo. Detalhes e limitações
+> estão em [`docs/autenticacao-jwt.md`](../autenticacao-jwt.md).
+
+> Em produção, o uso de Bearer Token exige **HTTPS/TLS**, pois o token
+> concede acesso enquanto estiver válido. O cadastro público inicial é
+> uma simplificação didática, não um fluxo pronto para produção.

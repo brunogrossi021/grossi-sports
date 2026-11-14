@@ -25,10 +25,12 @@ class OpenApiTest {
         mockMvc.perform(get("/v3/api-docs"))
             .andExpect(status().isOk())
             .andExpect(jsonPath("$.openapi", startsWith("3.")))
-            .andExpect(jsonPath("$.components.securitySchemes.basicAuth.type")
+            .andExpect(jsonPath("$.components.securitySchemes.bearerAuth.type")
                 .value("http"))
-            .andExpect(jsonPath("$.components.securitySchemes.basicAuth.scheme")
-                .value("basic"))
+            .andExpect(jsonPath("$.components.securitySchemes.bearerAuth.scheme")
+                .value("bearer"))
+            .andExpect(jsonPath("$.components.securitySchemes.bearerAuth.bearerFormat")
+                .value("JWT"))
             .andExpect(jsonPath("$.paths['/api/produtos']").exists())
             .andExpect(jsonPath("$.paths['/api/produtos/{id}']").exists())
             .andExpect(jsonPath("$.paths['/api/pessoas'].get").exists())
@@ -61,6 +63,10 @@ class OpenApiTest {
                 .exists())
             .andExpect(jsonPath("$.paths['/api/contas-acesso/me/senha'].put")
                 .exists())
+            .andExpect(jsonPath("$.paths['/api/autenticacao/login'].post")
+                .exists())
+            .andExpect(jsonPath("$.components.schemas.LoginRequest").exists())
+            .andExpect(jsonPath("$.components.schemas.TokenResponse").exists())
             .andExpect(jsonPath("$.components.schemas.ApiError").exists());
     }
 }

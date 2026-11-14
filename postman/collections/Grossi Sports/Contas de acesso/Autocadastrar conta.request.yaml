@@ -1,6 +1,6 @@
 $kind: http-request
 name: Autocadastrar conta
-description: "Rota pública (Aula 12). Cria a pessoa e a conta de acesso na mesma transação, sempre com perfil OPERADOR. Não aceita pessoaId nem perfil."
+description: "Rota pública. Cria a pessoa e a conta de acesso na mesma transação, sempre com perfil OPERADOR. Não aceita pessoaId nem perfil."
 url: http://localhost:8080/api/contas-acesso
 method: POST
 auth:

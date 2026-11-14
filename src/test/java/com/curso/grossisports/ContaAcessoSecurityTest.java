@@ -4,22 +4,36 @@ import com.curso.grossisports.domain.ContaAcesso;
 import com.curso.grossisports.domain.Pessoa;
 import com.curso.grossisports.repository.ContaAcessoRepository;
 import com.curso.grossisports.repository.PessoaRepository;
+import com.curso.grossisports.security.JwtProperties;
+import com.jayway.jsonpath.JsonPath;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.webmvc.test.autoconfigure.AutoConfigureMockMvc;
+import org.springframework.http.HttpHeaders;
 import org.springframework.http.MediaType;
 import org.springframework.security.crypto.password.PasswordEncoder;
+import org.springframework.security.oauth2.jwt.Jwt;
+import org.springframework.security.oauth2.jwt.JwtClaimsSet;
+import org.springframework.security.oauth2.jwt.JwtDecoder;
+import org.springframework.security.oauth2.jwt.JwtEncoder;
+import org.springframework.security.oauth2.jwt.JwtEncoderParameters;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.web.servlet.MockMvc;
+import org.springframework.test.web.servlet.request.MockHttpServletRequestBuilder;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.time.Instant;
 import java.time.LocalDate;
+import java.util.List;
 import java.util.Locale;
+import java.util.UUID;
 
 import static org.hamcrest.Matchers.containsString;
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNotEquals;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.httpBasic;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
@@ -47,6 +61,15 @@ class ContaAcessoSecurityTest {
     @Autowired
     private PasswordEncoder passwordEncoder;
 
+    @Autowired
+    private JwtDecoder jwtDecoder;
+
+    @Autowired
+    private JwtEncoder jwtEncoder;
+
+    @Autowired
+    private JwtProperties jwtProperties;
+
     @Test
     void devePermitirHealthSemAutenticacao() throws Exception {
         mockMvc.perform(get("/api/health"))
@@ -54,7 +77,7 @@ class ContaAcessoSecurityTest {
     }
 
     @Test
-    void deveNegarRotaProtegidaSemAutenticacao() throws Exception {
+    void deveNegarRotaProtegidaSemToken() throws Exception {
         mockMvc.perform(get("/api/produtos"))
             .andExpect(status().isUnauthorized());
     }
@@ -93,33 +116,127 @@ class ContaAcessoSecurityTest {
     }
 
     @Test
-    void deveAutenticarComHttpBasicEConsultarAPropriaConta()
-        throws Exception {
-
+    void deveEmitirTokenBearerNoLogin() throws Exception {
         salvarConta("operadora.2026", SENHA);
 
+        mockMvc.perform(loginRequest("operadora.2026", SENHA))
+            .andExpect(status().isOk())
+            .andExpect(jsonPath("$.accessToken").isString())
+            .andExpect(jsonPath("$.tokenType").value("Bearer"))
+            .andExpect(jsonPath("$.expiresIn").value(1800))
+            .andExpect(jsonPath("$.expiresAt").exists())
+            .andExpect(jsonPath("$.senha").doesNotExist());
+    }
+
+    @Test
+    void deveEmitirClaimsEsperadosNoToken() throws Exception {
+        salvarConta("operadora.2026", SENHA);
+
+        Jwt jwt = jwtDecoder.decode(autenticar("operadora.2026", SENHA));
+
+        assertEquals(
+            jwtProperties.issuer(), jwt.getIssuer().toString());
+        assertEquals("operadora.2026", jwt.getSubject());
+        assertNotNull(jwt.getId());
+        assertFalse(jwt.getId().isBlank());
+        assertTrue(jwt.getClaimAsStringList("perfis")
+            .contains("OPERADOR"));
+        assertTrue(jwt.getExpiresAt().isAfter(jwt.getIssuedAt()));
+    }
+
+    @Test
+    void deveAcessarRotaProtegidaComTokenValido() throws Exception {
+        salvarConta("operadora.2026", SENHA);
+
+        String token = autenticar("operadora.2026", SENHA);
+
         mockMvc.perform(get("/api/contas-acesso/me")
-                .with(httpBasic("operadora.2026", SENHA)))
+                .header(HttpHeaders.AUTHORIZATION, "Bearer " + token))
             .andExpect(status().isOk())
             .andExpect(jsonPath("$.login").value("operadora.2026"))
             .andExpect(jsonPath("$.nomePessoa",
                 containsString("Pessoa")));
+    }
+
+    @Test
+    void deveNegarBasicMesmoComCredenciaisValidas() throws Exception {
+        salvarConta("operadora.2026", SENHA);
 
         mockMvc.perform(get("/api/contas-acesso/me")
-                .with(httpBasic("operadora.2026", "senha-incorreta")))
+                .with(httpBasic("operadora.2026", SENHA)))
             .andExpect(status().isUnauthorized());
     }
 
     @Test
-    void deveImpedirAutenticacaoDeContaBloqueada()
-        throws Exception {
+    void deveNegarLoginComSenhaIncorreta() throws Exception {
+        salvarConta("operadora.2026", SENHA);
 
+        mockMvc.perform(loginRequest("operadora.2026", "senha-incorreta"))
+            .andExpect(status().isUnauthorized())
+            .andExpect(jsonPath("$.message").value(
+                "Login ou senha inválidos"));
+    }
+
+    @Test
+    void deveNegarLoginDeContaBloqueada() throws Exception {
         ContaAcesso conta = salvarConta("conta.bloqueada", SENHA);
         conta.bloquear();
         contaRepository.saveAndFlush(conta);
 
+        mockMvc.perform(loginRequest("conta.bloqueada", SENHA))
+            .andExpect(status().isUnauthorized())
+            .andExpect(jsonPath("$.message").value(
+                "Login ou senha inválidos"));
+    }
+
+    @Test
+    void deveNegarTokenMalformado() throws Exception {
         mockMvc.perform(get("/api/contas-acesso/me")
-                .with(httpBasic("conta.bloqueada", SENHA)))
+                .header(HttpHeaders.AUTHORIZATION, "Bearer nao-e-um-jwt"))
+            .andExpect(status().isUnauthorized());
+    }
+
+    @Test
+    void deveNegarTokenComAssinaturaAlterada() throws Exception {
+        salvarConta("operadora.2026", SENHA);
+
+        String token = autenticar("operadora.2026", SENHA);
+        String[] partes = token.split("\\.");
+
+        char primeiro = partes[2].charAt(0);
+        char trocado = primeiro == 'A' ? 'B' : 'A';
+
+        String adulterado = partes[0] + "." + partes[1] + "."
+            + trocado + partes[2].substring(1);
+
+        mockMvc.perform(get("/api/contas-acesso/me")
+                .header(HttpHeaders.AUTHORIZATION,
+                    "Bearer " + adulterado))
+            .andExpect(status().isUnauthorized());
+    }
+
+    @Test
+    void deveNegarTokenExpirado() throws Exception {
+        salvarConta("operadora.2026", SENHA);
+
+        Instant agora = Instant.now();
+
+        JwtClaimsSet claims = JwtClaimsSet.builder()
+            .issuer(jwtProperties.issuer())
+            .issuedAt(agora.minusSeconds(3600))
+            .expiresAt(agora.minusSeconds(60))
+            .subject("operadora.2026")
+            .id(UUID.randomUUID().toString())
+            .claim("perfis", List.of("OPERADOR"))
+            .build();
+
+        String expirado = jwtEncoder
+            .encode(JwtEncoderParameters.from(claims))
+            .getTokenValue();
+
+        mockMvc.perform(get("/api/contas-acesso/me")
+                .header(HttpHeaders.AUTHORIZATION,
+                    "Bearer " + expirado))
             .andExpect(status().isUnauthorized());
     }
 
@@ -158,6 +275,31 @@ class ContaAcessoSecurityTest {
         assertEquals(cpf, pessoa.getCpf());
         assertEquals("Pessoa Vínculo", pessoa.getNome());
         assertTrue(contaRepository.existsByPessoaId(pessoa.getId()));
+    }
+
+    private MockHttpServletRequestBuilder loginRequest(
+        String login, String senha) {
+
+        return post("/api/autenticacao/login")
+            .contentType(MediaType.APPLICATION_JSON)
+            .content("""
+                {
+                  "login": "%s",
+                  "senha": "%s"
+                }
+                """.formatted(login, senha));
+    }
+
+    private String autenticar(String login, String senha)
+        throws Exception {
+
+        String corpo = mockMvc.perform(loginRequest(login, senha))
+            .andExpect(status().isOk())
+            .andReturn()
+            .getResponse()
+            .getContentAsString();
+
+        return JsonPath.read(corpo, "$.accessToken");
     }
 
     private ContaAcesso salvarConta(String login, String senha) {

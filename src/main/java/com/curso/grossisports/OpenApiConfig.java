@@ -12,7 +12,7 @@ import org.springframework.context.annotation.Configuration;
 @Configuration
 public class OpenApiConfig {
 
-    private static final String ESQUEMA_BASIC = "basicAuth";
+    private static final String ESQUEMA_BEARER = "bearerAuth";
 
     @Bean
     public OpenAPI grossiSportsOpenAPI() {
@@ -25,11 +25,12 @@ public class OpenApiConfig {
                         "grupos de produtos, fornecedores e movimentações de estoque."))
             .components(new Components()
                 .addSecuritySchemes(
-                    ESQUEMA_BASIC,
+                    ESQUEMA_BEARER,
                     new SecurityScheme()
                         .type(SecurityScheme.Type.HTTP)
-                        .scheme("basic")))
+                        .scheme("bearer")
+                        .bearerFormat("JWT")))
             .addSecurityItem(
-                new SecurityRequirement().addList(ESQUEMA_BASIC));
+                new SecurityRequirement().addList(ESQUEMA_BEARER));
     }
 }
