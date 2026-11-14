@@ -133,8 +133,13 @@ evita que um atacante descubra, pelas respostas, quais logins existem.
   emitido permanece válido até `exp`, mesmo que a conta seja bloqueada
   ou a senha seja alterada nesse intervalo. *Logout com revogação de
   token está fora do escopo.*
-- **Sem autorização por perfil.** Os perfis são emitidos no token, mas
-  ainda não restringem rotas específicas nesta aula.
+- **Autorização por perfil (desde a Aula 14).** Os perfis emitidos no
+  token passaram a restringir rotas: o claim `perfis` é convertido em
+  authorities `ROLE_OPERADOR` e `ROLE_ADMINISTRADOR`, e a política HTTP
+  diferencia operações de operador e de administrador. A matriz de
+  autorização, a diferença entre `401` e `403` e o *bootstrap* do
+  primeiro administrador estão em
+  [`docs/autorizacao-perfis.md`](autorizacao-perfis.md).
 - **Chave simétrica (HS256).** Emissor e validador compartilham a mesma
   chave. *RSA/JWK Set está fora do escopo.*
 
@@ -155,5 +160,7 @@ evita que um atacante descubra, pelas respostas, quais logins existem.
 - Emissão de claims: `src/main/java/com/curso/grossisports/security/TokenService.java`
 - Endpoint de login: `src/main/java/com/curso/grossisports/api/AutenticacaoController.java`
 - Testes: `src/test/java/com/curso/grossisports/ContaAcessoSecurityTest.java`
+- Autorização por perfis: `docs/autorizacao-perfis.md`
+- Testes de autorização: `src/test/java/com/curso/grossisports/AutorizacaoApiTest.java`
 - Contrato OpenAPI: `docs/api/api-docs.yaml`
 - Documentação OpenAPI: `docs/api/documentacao-openapi.md`

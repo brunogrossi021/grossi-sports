@@ -1,0 +1,21 @@
+$kind: http-request
+name: Login do administrador
+description: "Rota pública. Autentica com adminLogin/adminPassword e grava adminAccessToken e accessToken (Bearer herdado) para as requisições administrativas seguintes."
+url: http://localhost:8080/api/autenticacao/login
+method: POST
+auth:
+  type: noauth
+body:
+  type: json
+  content: "{\r\n  \"login\": \"{{adminLogin}}\",\r\n  \"senha\": \"{{adminPassword}}\"\r\n}"
+scripts:
+  - type: afterResponse
+    code: |-
+      const resposta = pm.response.json();
+
+      if (pm.response.code === 200 && resposta && resposta.accessToken) {
+          pm.collectionVariables.set('adminAccessToken', resposta.accessToken);
+          pm.collectionVariables.set('accessToken', resposta.accessToken);
+      }
+    language: text/javascript
+order: 4485315013079101

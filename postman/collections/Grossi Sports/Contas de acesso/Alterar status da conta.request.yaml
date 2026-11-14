@@ -1,0 +1,9 @@
+$kind: http-request
+name: Alterar status da conta
+description: "Restrito a ADMINISTRADOR (Aula 14). Ativa ou bloqueia a conta. Não permite bloquear a própria conta nem o último administrador ativo. Requer Bearer de administrador."
+url: http://localhost:8080/api/contas-acesso/{{operadorId}}/status
+method: PUT
+body:
+  type: json
+  content: "{\r\n  \"status\": \"BLOQUEADA\"\r\n}"
+order: 4485315013079006

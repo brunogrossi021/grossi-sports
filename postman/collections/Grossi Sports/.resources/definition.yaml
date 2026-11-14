@@ -6,7 +6,21 @@ variables:
     value: PREENCHA_LOCALMENTE
   - key: newPassword
     value: PREENCHA_LOCALMENTE
+  - key: adminLogin
+    value: administrador
+  - key: adminPassword
+    value: PREENCHA_LOCALMENTE
+  - key: operatorLogin
+    value: operador.autorizacao
+  - key: operatorPassword
+    value: PREENCHA_LOCALMENTE
+  - key: operadorId
+    value: ""
   - key: accessToken
+    value: ""
+  - key: adminAccessToken
+    value: ""
+  - key: operatorAccessToken
     value: ""
 auth:
   type: bearer

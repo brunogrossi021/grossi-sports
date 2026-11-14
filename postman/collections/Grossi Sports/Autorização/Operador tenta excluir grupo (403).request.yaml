@@ -1,0 +1,13 @@
+$kind: http-request
+name: Operador tenta excluir grupo (403)
+description: "Demonstra a autorização por perfil: com o Bearer herdado do operador, DELETE /api/grupos-produtos/{id} responde 403 Forbidden, pois exige ADMINISTRADOR."
+url: http://localhost:8080/api/grupos-produtos/1
+method: DELETE
+scripts:
+  - type: afterResponse
+    code: |-
+      pm.test('Operador recebe 403 Forbidden', function () {
+          pm.response.to.have.status(403);
+      });
+    language: text/javascript
+order: 4485315013079104

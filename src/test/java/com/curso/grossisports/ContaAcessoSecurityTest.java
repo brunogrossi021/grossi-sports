@@ -1,6 +1,7 @@
 package com.curso.grossisports;
 
 import com.curso.grossisports.domain.ContaAcesso;
+import com.curso.grossisports.domain.PerfilAcesso;
 import com.curso.grossisports.domain.Pessoa;
 import com.curso.grossisports.repository.ContaAcessoRepository;
 import com.curso.grossisports.repository.PessoaRepository;
@@ -86,9 +87,11 @@ class ContaAcessoSecurityTest {
     void deveCadastrarContaArmazenandoHashSemExporSenha()
         throws Exception {
 
+        String token = tokenAdministrador();
         String cpf = gerarCpf(System.nanoTime());
 
         mockMvc.perform(post("/api/contas-acesso")
+                .header(HttpHeaders.AUTHORIZATION, "Bearer " + token)
                 .contentType(MediaType.APPLICATION_JSON)
                 .content("""
                     {
@@ -248,8 +251,10 @@ class ContaAcessoSecurityTest {
         String email = "vinculo." + semente + "@example.com";
         String cpf = gerarCpf(semente);
         String login = "vinculo." + semente;
+        String token = tokenAdministrador();
 
         mockMvc.perform(post("/api/contas-acesso")
+                .header(HttpHeaders.AUTHORIZATION, "Bearer " + token)
                 .contentType(MediaType.APPLICATION_JSON)
                 .content("""
                     {
@@ -307,6 +312,19 @@ class ContaAcessoSecurityTest {
         return contaRepository.saveAndFlush(
             new ContaAcesso(
                 pessoa, login, passwordEncoder.encode(senha)));
+    }
+
+    private String tokenAdministrador() throws Exception {
+        salvarContaAdmin("admin.2026", SENHA);
+        return autenticar("admin.2026", SENHA);
+    }
+
+    private ContaAcesso salvarContaAdmin(String login, String senha) {
+        Pessoa pessoa = novaPessoa(login.replace('.', '-'));
+        ContaAcesso conta = new ContaAcesso(
+            pessoa, login, passwordEncoder.encode(senha));
+        conta.concederPerfil(PerfilAcesso.ADMINISTRADOR);
+        return contaRepository.saveAndFlush(conta);
     }
 
     private Pessoa novaPessoa(String identificador) {

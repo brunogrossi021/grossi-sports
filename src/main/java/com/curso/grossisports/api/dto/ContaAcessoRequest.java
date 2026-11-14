@@ -8,9 +8,10 @@ import jakarta.validation.constraints.Pattern;
 import jakarta.validation.constraints.Size;
 
 @Schema(
-    description = "Dados para o autocadastro: cria a pessoa e a conta "
-        + "de acesso na mesma requisição. Não aceita pessoa existente "
-        + "nem perfil de acesso."
+    description = "Dados para a criação administrativa: cria a pessoa "
+        + "e a conta de acesso na mesma requisição, sempre com o perfil "
+        + "OPERADOR. Operação restrita a ADMINISTRADOR. Não aceita "
+        + "pessoa existente nem perfil de acesso."
 )
 public record ContaAcessoRequest(
 

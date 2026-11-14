@@ -1,0 +1,9 @@
+$kind: http-request
+name: Alterar perfis da conta
+description: "Restrito a ADMINISTRADOR (Aula 14). Substitui os perfis de acesso. Não permite deixar a conta sem perfil, remover o próprio perfil administrativo nem o perfil do último administrador ativo. Requer Bearer de administrador."
+url: http://localhost:8080/api/contas-acesso/{{operadorId}}/perfis
+method: PUT
+body:
+  type: json
+  content: "{\r\n  \"perfis\": [\"OPERADOR\", \"ADMINISTRADOR\"]\r\n}"
+order: 4485315013079005

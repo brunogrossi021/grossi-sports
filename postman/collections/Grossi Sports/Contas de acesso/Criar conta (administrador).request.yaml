@@ -1,0 +1,9 @@
+$kind: http-request
+name: Criar conta (administrador)
+description: "Restrito a ADMINISTRADOR (Aula 14). Cria a pessoa e a conta de acesso na mesma transação, sempre com perfil OPERADOR. Não aceita pessoaId nem perfil. Requer Bearer de administrador."
+url: http://localhost:8080/api/contas-acesso
+method: POST
+body:
+  type: json
+  content: "{\r\n  \"nome\": \"Operador Postman\",\r\n  \"email\": \"operador.postman@example.com\",\r\n  \"cpf\": \"11144477735\",\r\n  \"login\": \"{{authLogin}}\",\r\n  \"senha\": \"{{authPassword}}\"\r\n}"
+order: 4485315013079002

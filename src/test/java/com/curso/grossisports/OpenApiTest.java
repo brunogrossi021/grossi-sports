@@ -59,10 +59,18 @@ class OpenApiTest {
             .andExpect(jsonPath("$.components.schemas.ContaAcessoResponse")
                 .exists())
             .andExpect(jsonPath("$.paths['/api/contas-acesso'].post").exists())
+            .andExpect(jsonPath("$.paths['/api/contas-acesso/{id}/perfis'].put")
+                .exists())
+            .andExpect(jsonPath("$.paths['/api/contas-acesso/{id}/status'].put")
+                .exists())
             .andExpect(jsonPath("$.paths['/api/contas-acesso/me'].get")
                 .exists())
             .andExpect(jsonPath("$.paths['/api/contas-acesso/me/senha'].put")
                 .exists())
+            .andExpect(jsonPath(
+                "$.components.schemas.PerfisContaAcessoRequest").exists())
+            .andExpect(jsonPath(
+                "$.components.schemas.StatusContaAcessoRequest").exists())
             .andExpect(jsonPath("$.paths['/api/autenticacao/login'].post")
                 .exists())
             .andExpect(jsonPath("$.components.schemas.LoginRequest").exists())

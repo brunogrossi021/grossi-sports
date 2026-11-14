@@ -50,7 +50,9 @@ A tabela apresenta as operações identificadas na especificação OpenAPI do pr
 | `/api/vendas/{id}/finalizacao` | POST | 200 OK | 400 Bad Request, 404 Not Found |
 | `/api/vendas/{id}/cancelamento` | POST | 200 OK | 400 Bad Request, 404 Not Found |
 | `/api/health` | GET | 200 OK | Não especificados na documentação |
-| `/api/contas-acesso` | POST | 201 Created | 400 Bad Request, 409 Conflict |
+| `/api/contas-acesso` | POST | 201 Created | 400 Bad Request, 401 Unauthorized, 403 Forbidden, 409 Conflict |
+| `/api/contas-acesso/{id}/perfis` | PUT | 200 OK | 400 Bad Request, 401 Unauthorized, 403 Forbidden, 404 Not Found |
+| `/api/contas-acesso/{id}/status` | PUT | 200 OK | 400 Bad Request, 401 Unauthorized, 403 Forbidden, 404 Not Found |
 | `/api/contas-acesso/me` | GET | 200 OK | 404 Not Found |
 | `/api/contas-acesso/me/senha` | PUT | 204 No Content | 400 Bad Request, 404 Not Found |
 | `/api/autenticacao/login` | POST | 200 OK | 400 Bad Request, 401 Unauthorized |
@@ -109,6 +111,14 @@ inclusão do endpoint `POST /api/autenticacao/login`. A tabela de
 operações e a seção de segurança foram atualizadas para refletir o
 novo fluxo de autenticação por token JWT.
 
+Na Aula 14 o contrato foi regenerado novamente a partir de
+`/v3/api-docs.yaml` após a introdução da autorização por perfis
+(`OPERADOR` e `ADMINISTRADOR`). Passaram a existir as operações
+`PUT /api/contas-acesso/{id}/perfis` e `PUT /api/contas-acesso/{id}/status`,
+restritas a `ADMINISTRADOR`, e o cadastro `POST /api/contas-acesso`
+deixou de ser público. As respostas `401 Unauthorized` e
+`403 Forbidden` foram documentadas nessas operações administrativas.
+
 ## 6. Segurança e autenticação
 
 A partir da Aula 13 a API é protegida com Spring Security no modo
@@ -124,18 +134,28 @@ globalmente.
 - **Rota pública de login:** `POST /api/autenticacao/login`, que recebe
   `login` e `senha` e devolve `accessToken`, `tokenType`, `expiresIn` e
   `expiresAt`. É pública porque o cliente ainda não possui token.
-- **Demais rotas públicas:** `GET /api/health`, `POST /api/contas-acesso`,
-  `/v3/api-docs/**`, `/v3/api-docs.yaml`, `/swagger-ui.html` e
-  `/swagger-ui/**`.
+- **Demais rotas públicas:** `GET /api/health`, `/v3/api-docs/**`,
+  `/v3/api-docs.yaml`, `/swagger-ui.html` e `/swagger-ui/**`.
 - **Rotas protegidas:** todas as demais exigem um JWT válido e respondem
   `401 Unauthorized` sem token ou com token inválido. Isso inclui
   `POST /api/pessoas`, que permanece autenticado.
 
-O `POST /api/contas-acesso` é um **autocadastro didático** que cria a
+A partir da Aula 14 a API diferencia **perfis de acesso**. O claim
+`perfis` do JWT é convertido em authorities `ROLE_OPERADOR` e
+`ROLE_ADMINISTRADOR`. As operações do dia a dia exigem `OPERADOR` ou
+`ADMINISTRADOR`; a administração de contas e a exclusão de grupos de
+produtos exigem `ADMINISTRADOR`. Uma requisição autenticada sem o perfil
+necessário recebe `403 Forbidden`. A regra final da política é
+`denyAll()`, de modo que nenhuma rota nova fica pública por descuido.
+Detalhes em [`docs/autorizacao-perfis.md`](../autorizacao-perfis.md).
+
+O `POST /api/contas-acesso` deixou de ser autocadastro público: passou a
+ser uma **criação administrativa** que exige `ADMINISTRADOR`. Ela cria a
 pessoa e a conta de acesso na mesma transação, sempre com o perfil
-`OPERADOR`. O cliente não informa `pessoaId` nem perfil de acesso, o
-que impede vincular credenciais a uma pessoa já existente. As
-respostas nunca contêm senha ou hash.
+`OPERADOR`; a elevação a administrador ocorre apenas por
+`PUT /api/contas-acesso/{id}/perfis`. O cliente não informa `pessoaId`
+nem perfil de acesso no cadastro, o que impede vincular credenciais a
+uma pessoa já existente. As respostas nunca contêm senha ou hash.
 
 ### 6.1 Token JWT
 
@@ -156,5 +176,7 @@ resposta `401` genérica, evitando revelar qual dado estava errado.
 > estão em [`docs/autenticacao-jwt.md`](../autenticacao-jwt.md).
 
 > Em produção, o uso de Bearer Token exige **HTTPS/TLS**, pois o token
-> concede acesso enquanto estiver válido. O cadastro público inicial é
-> uma simplificação didática, não um fluxo pronto para produção.
+> concede acesso enquanto estiver válido. O cadastro público de contas
+> foi encerrado na Aula 14: a criação de contas agora é administrativa e
+> o primeiro administrador é provisionado pelo *bootstrap* descrito em
+> [`docs/autorizacao-perfis.md`](../autorizacao-perfis.md).

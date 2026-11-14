@@ -1,0 +1,18 @@
+$kind: http-request
+name: Criar operador (administrador)
+description: "Restrito a ADMINISTRADOR. Usa o Bearer herdado (token do administrador). Cria a conta com perfil OPERADOR e grava operadorId para as próximas requisições."
+url: http://localhost:8080/api/contas-acesso
+method: POST
+body:
+  type: json
+  content: "{\r\n  \"nome\": \"Operador Autorização\",\r\n  \"email\": \"operador.autorizacao@example.com\",\r\n  \"cpf\": \"52998224725\",\r\n  \"login\": \"{{operatorLogin}}\",\r\n  \"senha\": \"{{operatorPassword}}\"\r\n}"
+scripts:
+  - type: afterResponse
+    code: |-
+      const resposta = pm.response.json();
+
+      if (pm.response.code === 201 && resposta && resposta.id) {
+          pm.collectionVariables.set('operadorId', resposta.id);
+      }
+    language: text/javascript
+order: 4485315013079102
