@@ -1,6 +1,6 @@
 $kind: http-request
 name: Login do operador
-description: "Rota pública. Autentica com operatorLogin/operatorPassword e grava operatorAccessToken e accessToken (Bearer herdado) para demonstrar as restrições do perfil OPERADOR."
+description: "Rota pública. Autentica com operatorLogin/operatorPassword e grava operatorAccessToken, accessToken (Bearer herdado) e refreshToken para demonstrar as restrições do perfil OPERADOR."
 url: http://localhost:8080/api/autenticacao/login
 method: POST
 auth:
@@ -16,6 +16,7 @@ scripts:
       if (pm.response.code === 200 && resposta && resposta.accessToken) {
           pm.collectionVariables.set('operatorAccessToken', resposta.accessToken);
           pm.collectionVariables.set('accessToken', resposta.accessToken);
+          pm.collectionVariables.set('refreshToken', resposta.refreshToken);
       }
     language: text/javascript
 order: 4485315013079103

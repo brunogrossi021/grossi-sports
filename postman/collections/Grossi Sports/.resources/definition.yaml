@@ -18,6 +18,8 @@ variables:
     value: ""
   - key: accessToken
     value: ""
+  - key: refreshToken
+    value: ""
   - key: adminAccessToken
     value: ""
   - key: operatorAccessToken

@@ -31,5 +31,6 @@ O sistema permitirá o gerenciamento de grupos e produtos esportivos, incluindo 
 - [Tema do projeto](docs/tema-do-projeto.md)
 - [Documentação OpenAPI](docs/api/documentacao-openapi.md)
 - [Autenticação com JWT](docs/autenticacao-jwt.md)
+- [Ciclo de vida dos tokens](docs/ciclo-tokens.md)
 - [Autorização por perfis](docs/autorizacao-perfis.md)
 - [Testes e cobertura (Aula 15)](docs/testes-cobertura.md)

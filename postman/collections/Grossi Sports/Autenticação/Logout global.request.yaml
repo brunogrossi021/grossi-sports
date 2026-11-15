@@ -1,0 +1,13 @@
+$kind: http-request
+name: Logout global
+description: "Exige Bearer Token (Aula 16). Revoga todas as sessões renováveis da conta autenticada e responde 204. Não invalida o access token já emitido, que segue válido até expirar (30 min)."
+url: http://localhost:8080/api/autenticacao/logout-todos
+method: POST
+scripts:
+  - type: afterResponse
+    code: |-
+      pm.test('Logout global responde 204', function () {
+          pm.response.to.have.status(204);
+      });
+    language: text/javascript
+order: 4485315013079004

@@ -1,6 +1,7 @@
 package com.curso.grossisports;
 
 import com.curso.grossisports.security.AdministradorInicialProperties;
+import com.curso.grossisports.security.RefreshTokenProperties;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -25,7 +26,9 @@ import org.springframework.security.web.SecurityFilterChain;
  */
 @Configuration
 @EnableMethodSecurity
-@EnableConfigurationProperties(AdministradorInicialProperties.class)
+@EnableConfigurationProperties({
+    AdministradorInicialProperties.class,
+    RefreshTokenProperties.class})
 public class SecurityConfig {
 
     private static final String CLAIM_PERFIS = "perfis";
@@ -77,11 +80,17 @@ public class SecurityConfig {
                     "/swagger-ui.html",
                     "/swagger-ui/**")
                 .permitAll()
-                // Login é público: o cliente ainda não possui token.
+                // Públicas: login, renovação e logout local. O cliente
+                // ainda não possui (ou não usará) token de acesso: o
+                // refresh token opaco é a credencial da operação.
                 .requestMatchers(
                     HttpMethod.POST,
-                    "/api/autenticacao/login")
+                    "/api/autenticacao/login",
+                    "/api/autenticacao/refresh",
+                    "/api/autenticacao/logout")
                 .permitAll()
+                // (O logout global, POST /api/autenticacao/logout-todos,
+                // exige Bearer e cai na regra /api/** mais abaixo.)
                 // Administração de contas: somente ADMINISTRADOR.
                 .requestMatchers(
                     HttpMethod.POST,

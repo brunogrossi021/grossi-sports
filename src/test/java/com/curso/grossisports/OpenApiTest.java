@@ -73,7 +73,15 @@ class OpenApiTest {
                 "$.components.schemas.StatusContaAcessoRequest").exists())
             .andExpect(jsonPath("$.paths['/api/autenticacao/login'].post")
                 .exists())
+            .andExpect(jsonPath("$.paths['/api/autenticacao/refresh'].post")
+                .exists())
+            .andExpect(jsonPath("$.paths['/api/autenticacao/logout'].post")
+                .exists())
+            .andExpect(jsonPath("$.paths['/api/autenticacao/logout-todos'].post")
+                .exists())
             .andExpect(jsonPath("$.components.schemas.LoginRequest").exists())
+            .andExpect(jsonPath("$.components.schemas.RefreshTokenRequest")
+                .exists())
             .andExpect(jsonPath("$.components.schemas.TokenResponse").exists())
             .andExpect(jsonPath("$.components.schemas.ApiError").exists());
     }

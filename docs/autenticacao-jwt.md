@@ -1,8 +1,10 @@
 # Autenticação com JWT — Grossi Sports
 
-Documento de apoio da Aula 13. Descreve como obter e usar o token
-Bearer, quais claims são emitidos, as limitações de validade e
-revogação e as recomendações de uso seguro.
+Documento de apoio da Aula 13, atualizado na Aula 16. Descreve como
+obter e usar o token Bearer, quais claims são emitidos, as limitações de
+validade e revogação e as recomendações de uso seguro. O ciclo completo
+do par access/refresh token está em
+[`docs/ciclo-tokens.md`](ciclo-tokens.md).
 
 ## 1. Visão geral
 
@@ -42,14 +44,19 @@ Resposta `200 OK`:
   "accessToken": "eyJraWQiOi...",
   "tokenType": "Bearer",
   "expiresIn": 1800,
-  "expiresAt": "2026-10-29T21:30:00Z"
+  "expiresAt": "2026-10-29T21:30:00Z",
+  "refreshToken": "8fJ2s1kQ...",
+  "refreshTokenExpiresAt": "2026-10-30T05:30:00Z"
 }
 ```
 
 - `accessToken`: JWT assinado.
 - `tokenType`: sempre `Bearer`.
-- `expiresIn`: validade em segundos (1800 = 30 minutos).
-- `expiresAt`: instante absoluto de expiração (UTC).
+- `expiresIn`: validade do access token em segundos (1800 = 30 minutos).
+- `expiresAt`: instante absoluto de expiração do access token (UTC).
+- `refreshToken`: token opaco usado para renovar sem reenviar a senha
+  (Aula 16). Só aparece em claro nesta resposta.
+- `refreshTokenExpiresAt`: limite absoluto da sessão renovável.
 
 ## 3. Como usar o token
 
@@ -76,10 +83,13 @@ O token contém:
 | `iat` | Instante de emissão |
 | `exp` | Instante de expiração (emissão + 30 min) |
 | `perfis` | Perfis derivados das authorities (ex.: `["OPERADOR"]`) |
+| `sid` | Identificador da família de refresh tokens (Aula 16) |
 
 Os `perfis` vêm exclusivamente das authorities do usuário autenticado,
 nunca do corpo da requisição, o que impede que o cliente conceda a si
-mesmo um perfil.
+mesmo um perfil. O `sid` correlaciona o access token à sessão renovável
+que o originou; ele é informativo e não substitui a validação do refresh
+token no servidor.
 
 ## 5. Assinatura e chave
 
@@ -126,13 +136,18 @@ evita que um atacante descubra, pelas respostas, quais logins existem.
 
 ## 8. Limitações (escopo da aula)
 
-- **Validade fixa de 30 minutos.** Não há renovação automática de token
-  nesta aula; ao expirar, é necessário autenticar novamente. *Refresh
-  token está fora do escopo.*
-- **Sem revogação.** Como a validação é local e *stateless*, um token já
-  emitido permanece válido até `exp`, mesmo que a conta seja bloqueada
-  ou a senha seja alterada nesse intervalo. *Logout com revogação de
-  token está fora do escopo.*
+- **Access token de 30 minutos.** O access token em si não é renovado: ao
+  expirar, o cliente obtém um novo por meio do **refresh token** (Aula
+  16), sem reenviar a senha. Detalhes em
+  [`docs/ciclo-tokens.md`](ciclo-tokens.md).
+- **Logout revoga o refresh, não o access.** A partir da Aula 16 o logout
+  revoga os refresh tokens da sessão (e o logout global, todas as sessões
+  da conta). Como o access token é validado localmente e *stateless*, um
+  access token já emitido **continua válido até `exp`** (no máximo 30
+  minutos), mesmo após o logout ou o bloqueio da conta. Invalidação
+  imediata de access token exigiria estado adicional (por exemplo,
+  *denylist* de `jti` ou introspecção a cada requisição), o que está
+  **fora do escopo**.
 - **Autorização por perfil (desde a Aula 14).** Os perfis emitidos no
   token passaram a restringir rotas: o claim `perfis` é convertido em
   authorities `ROLE_OPERADOR` e `ROLE_ADMINISTRADOR`, e a política HTTP
@@ -160,6 +175,8 @@ evita que um atacante descubra, pelas respostas, quais logins existem.
 - Emissão de claims: `src/main/java/com/curso/grossisports/security/TokenService.java`
 - Endpoint de login: `src/main/java/com/curso/grossisports/api/AutenticacaoController.java`
 - Testes: `src/test/java/com/curso/grossisports/ContaAcessoSecurityTest.java`
+- Ciclo de tokens (refresh/logout): [`docs/ciclo-tokens.md`](ciclo-tokens.md)
+- Testes do ciclo de tokens: `src/test/java/com/curso/grossisports/AutenticacaoSessaoApiTest.java`
 - Autorização por perfis: `docs/autorizacao-perfis.md`
 - Testes de autorização: `src/test/java/com/curso/grossisports/AutorizacaoApiTest.java`
 - Contrato OpenAPI: `docs/api/api-docs.yaml`

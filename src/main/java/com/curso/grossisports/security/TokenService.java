@@ -13,15 +13,18 @@ import java.util.List;
 import java.util.UUID;
 
 /**
- * Emite o JWT a partir de uma autenticação já validada (Aula 13).
+ * Emite o JWT a partir de uma autenticação já validada (Aulas 13 e 16).
  *
  * <p>Os perfis vêm exclusivamente das authorities do objeto autenticado,
- * nunca do JSON enviado pelo cliente.</p>
+ * nunca do JSON enviado pelo cliente. A partir da Aula 16 o token carrega
+ * o claim {@code sid} com o identificador da família de refresh tokens,
+ * permitindo correlacionar o acesso à sessão renovável que o originou.</p>
  */
 @Service
 public class TokenService {
 
     private static final String PREFIXO_PERFIL = "ROLE_";
+    private static final String CLAIM_SESSAO = "sid";
 
     private final JwtEncoder encoder;
     private final JwtProperties properties;
@@ -36,7 +39,9 @@ public class TokenService {
         this.clock = clock;
     }
 
-    public TokenAcesso emitir(Authentication authentication) {
+    public TokenAcesso emitir(
+        Authentication authentication, String sessaoId) {
+
         Instant emitidoEm = clock.instant();
         Instant expiraEm = emitidoEm.plus(properties.expiration());
 
@@ -54,6 +59,7 @@ public class TokenService {
             .subject(authentication.getName())
             .id(UUID.randomUUID().toString())
             .claim("perfis", perfis)
+            .claim(CLAIM_SESSAO, sessaoId)
             .build();
 
         String valor = encoder

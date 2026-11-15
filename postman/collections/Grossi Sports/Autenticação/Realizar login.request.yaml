@@ -1,6 +1,6 @@
 $kind: http-request
 name: Realizar login
-description: "Rota pública (Aula 13). Envia login e senha e emite um JWT de 30 minutos. O script grava o accessToken na variável de coleção, usada pelo Bearer herdado."
+description: "Rota pública (Aula 13). Envia login e senha e emite um JWT de 30 minutos e um refresh token opaco (Aula 16). O script grava accessToken e refreshToken na coleção; o Bearer herdado usa o accessToken."
 url: http://localhost:8080/api/autenticacao/login
 method: POST
 auth:
@@ -15,6 +15,7 @@ scripts:
 
       if (pm.response.code === 200 && resposta && resposta.accessToken) {
           pm.collectionVariables.set('accessToken', resposta.accessToken);
+          pm.collectionVariables.set('refreshToken', resposta.refreshToken);
       }
     language: text/javascript
 order: 4485315013079001

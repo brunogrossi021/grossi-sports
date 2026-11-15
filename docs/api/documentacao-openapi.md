@@ -56,6 +56,9 @@ A tabela apresenta as operações identificadas na especificação OpenAPI do pr
 | `/api/contas-acesso/me` | GET | 200 OK | 404 Not Found |
 | `/api/contas-acesso/me/senha` | PUT | 204 No Content | 400 Bad Request, 404 Not Found |
 | `/api/autenticacao/login` | POST | 200 OK | 400 Bad Request, 401 Unauthorized |
+| `/api/autenticacao/refresh` | POST | 200 OK | 400 Bad Request, 401 Unauthorized |
+| `/api/autenticacao/logout` | POST | 204 No Content | 400 Bad Request |
+| `/api/autenticacao/logout-todos` | POST | 204 No Content | 401 Unauthorized |
 
 **Observação:** os códigos apresentados correspondem às respostas registradas no arquivo OpenAPI. Quando a documentação não apresenta um erro para determinada operação, isso não significa necessariamente que o erro seja impossível; significa apenas que ele não está especificado nesse contrato.
 
@@ -119,6 +122,17 @@ restritas a `ADMINISTRADOR`, e o cadastro `POST /api/contas-acesso`
 deixou de ser público. As respostas `401 Unauthorized` e
 `403 Forbidden` foram documentadas nessas operações administrativas.
 
+Na Aula 16 o contrato foi regenerado a partir de `/v3/api-docs.yaml`
+após a introdução do ciclo de refresh token. O login passou a devolver
+`refreshToken` e `refreshTokenExpiresAt`, e surgiram as operações
+`POST /api/autenticacao/refresh`, `POST /api/autenticacao/logout` e
+`POST /api/autenticacao/logout-todos`, além do esquema
+`RefreshTokenRequest`. A regeneração é feita a partir do endpoint
+`/v3/api-docs.yaml` da aplicação em execução (ou de um teste com
+`MockMvc`), **nunca** por edição manual do arquivo, para não manter uma
+versão desatualizada. Detalhes do ciclo em
+[`docs/ciclo-tokens.md`](../ciclo-tokens.md).
+
 ## 6. Segurança e autenticação
 
 A partir da Aula 13 a API é protegida com Spring Security no modo
@@ -131,9 +145,15 @@ O contrato OpenAPI declara o esquema de segurança `bearerAuth`
 (`type: http`, `scheme: bearer`, `bearerFormat: JWT`) e o aplica
 globalmente.
 
-- **Rota pública de login:** `POST /api/autenticacao/login`, que recebe
-  `login` e `senha` e devolve `accessToken`, `tokenType`, `expiresIn` e
-  `expiresAt`. É pública porque o cliente ainda não possui token.
+- **Rotas públicas de autenticação:** `POST /api/autenticacao/login`
+  (recebe `login` e `senha` e devolve `accessToken`, `tokenType`,
+  `expiresIn`, `expiresAt`, `refreshToken` e `refreshTokenExpiresAt`),
+  `POST /api/autenticacao/refresh` (recebe um refresh token e devolve um
+  novo par) e `POST /api/autenticacao/logout` (revoga a família do refresh
+  token e responde `204`). São públicas porque usam o refresh token como
+  credencial ou porque o cliente ainda não possui token.
+- **Logout global:** `POST /api/autenticacao/logout-todos` exige Bearer e
+  revoga todas as sessões da conta autenticada.
 - **Demais rotas públicas:** `GET /api/health`, `/v3/api-docs/**`,
   `/v3/api-docs.yaml`, `/swagger-ui.html` e `/swagger-ui/**`.
 - **Rotas protegidas:** todas as demais exigem um JWT válido e respondem
@@ -160,20 +180,24 @@ uma pessoa já existente. As respostas nunca contêm senha ou hash.
 ### 6.1 Token JWT
 
 O token é um JWT assinado em **HS256** com os claims `iss`, `sub`,
-`jti`, `iat`, `exp` e `perfis`. A chave de assinatura é lida de
+`jti`, `iat`, `exp`, `perfis` e `sid`. A chave de assinatura é lida de
 `JWT_SECRET` (arquivo `.env`, fora do Git) e nunca é versionada. Os
 perfis são derivados exclusivamente das authorities do usuário
-autenticado, nunca do corpo da requisição.
+autenticado, nunca do corpo da requisição. O claim `sid` (Aula 16)
+identifica a família de refresh tokens que originou o access token.
 
 A validação do token verifica a **assinatura**, o **emissor** (`iss`) e
 a **expiração** (`exp`). Credenciais inválidas no login — login
 inexistente, senha incorreta ou conta bloqueada — produzem a mesma
 resposta `401` genérica, evitando revelar qual dado estava errado.
 
-> O token tem validade de **30 minutos**. Como a validação é local e
-> *stateless*, um token já emitido continua válido até expirar, mesmo
-> que a conta seja bloqueada nesse intervalo. Detalhes e limitações
-> estão em [`docs/autenticacao-jwt.md`](../autenticacao-jwt.md).
+> O access token tem validade de **30 minutos**. Como a validação é local
+> e *stateless*, um token já emitido continua válido até expirar, mesmo
+> que a conta seja bloqueada ou que se faça logout nesse intervalo. O
+> logout revoga os **refresh tokens**, impedindo a renovação, mas não
+> invalida imediatamente o access token em circulação. Detalhes e
+> limitações estão em [`docs/ciclo-tokens.md`](../ciclo-tokens.md) e
+> [`docs/autenticacao-jwt.md`](../autenticacao-jwt.md).
 
 > Em produção, o uso de Bearer Token exige **HTTPS/TLS**, pois o token
 > concede acesso enquanto estiver válido. O cadastro público de contas

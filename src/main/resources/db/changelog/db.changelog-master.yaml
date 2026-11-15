@@ -17,3 +17,5 @@ databaseChangeLog:
       file: db/changelog/changes/008-regras-integridade-venda.yaml
   - include:
       file: db/changelog/changes/009-contas-acesso.yaml
+  - include:
+      file: db/changelog/changes/010-sessoes-refresh-token.yaml
