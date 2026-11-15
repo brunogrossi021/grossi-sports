@@ -1,0 +1,18 @@
+$kind: http-request
+name: Operador tenta consultar auditoria (403)
+description: "Defesa em profundidade (Aula 17): a consulta exige ADMINISTRADOR na política HTTP e no @PreAuthorize do serviço. Um OPERADOR autenticado recebe 403. Use 'Login do operador' antes para gravar operatorAccessToken."
+url: http://localhost:8080/api/auditoria-seguranca
+method: GET
+auth:
+  type: bearer
+  credentials:
+    - key: token
+      value: "{{operatorAccessToken}}"
+scripts:
+  - type: afterResponse
+    code: |-
+      pm.test('Operador recebe 403', function () {
+          pm.response.to.have.status(403);
+      });
+    language: text/javascript
+order: 4485315013079203

@@ -1,10 +1,12 @@
 # Autenticação com JWT — Grossi Sports
 
-Documento de apoio da Aula 13, atualizado na Aula 16. Descreve como
-obter e usar o token Bearer, quais claims são emitidos, as limitações de
-validade e revogação e as recomendações de uso seguro. O ciclo completo
+Documento de apoio da Aula 13, atualizado nas Aulas 16 e 17. Descreve
+como obter e usar o token Bearer, quais claims são emitidos, as limitações
+de validade e revogação e as recomendações de uso seguro. O ciclo completo
 do par access/refresh token está em
-[`docs/ciclo-tokens.md`](ciclo-tokens.md).
+[`docs/ciclo-tokens.md`](ciclo-tokens.md); a proteção contra tentativas
+automatizadas e a trilha de auditoria estão em
+[`docs/auditoria-protecao-autenticacao.md`](auditoria-protecao-autenticacao.md).
 
 ## 1. Visão geral
 
@@ -134,6 +136,14 @@ Login inexistente, senha incorreta e conta bloqueada produzem a mesma
 resposta `401` com mensagem genérica (`Login ou senha inválidos`). Isso
 evita que um atacante descubra, pelas respostas, quais logins existem.
 
+A partir da Aula 17, **falhas repetidas** contra o mesmo login ativam um
+**bloqueio temporário** após um limite configurável (5 falhas em 15
+minutos, por padrão). Durante o bloqueio, mesmo a senha correta é
+recusada — sempre com o mesmo `401` genérico — e a decisão ocorre
+**antes** de qualquer comparação BCrypt. A política, a concorrência e os
+riscos residuais estão em
+[`docs/auditoria-protecao-autenticacao.md`](auditoria-protecao-autenticacao.md).
+
 ## 8. Limitações (escopo da aula)
 
 - **Access token de 30 minutos.** O access token em si não é renovado: ao
@@ -157,6 +167,11 @@ evita que um atacante descubra, pelas respostas, quais logins existem.
   [`docs/autorizacao-perfis.md`](autorizacao-perfis.md).
 - **Chave simétrica (HS256).** Emissor e validador compartilham a mesma
   chave. *RSA/JWK Set está fora do escopo.*
+- **Proteção contra tentativas automatizadas (desde a Aula 17).** O
+  contador é por login e ativa um bloqueio temporário; não cobre
+  *password spraying* distribuído nem substitui WAF, CAPTCHA, MFA ou
+  limites de borda, conforme
+  [`docs/auditoria-protecao-autenticacao.md`](auditoria-protecao-autenticacao.md).
 
 ## 9. Recomendações de segurança
 
@@ -179,5 +194,6 @@ evita que um atacante descubra, pelas respostas, quais logins existem.
 - Testes do ciclo de tokens: `src/test/java/com/curso/grossisports/AutenticacaoSessaoApiTest.java`
 - Autorização por perfis: `docs/autorizacao-perfis.md`
 - Testes de autorização: `src/test/java/com/curso/grossisports/AutorizacaoApiTest.java`
+- Auditoria e proteção da autenticação: [`docs/auditoria-protecao-autenticacao.md`](auditoria-protecao-autenticacao.md)
 - Contrato OpenAPI: `docs/api/api-docs.yaml`
 - Documentação OpenAPI: `docs/api/documentacao-openapi.md`

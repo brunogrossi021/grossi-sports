@@ -4,6 +4,7 @@ import com.curso.grossisports.domain.ContaAcesso;
 import com.curso.grossisports.domain.PerfilAcesso;
 import com.curso.grossisports.domain.Pessoa;
 import com.curso.grossisports.domain.StatusContaAcesso;
+import com.curso.grossisports.domain.TipoEventoSeguranca;
 import com.curso.grossisports.exception.RecursoDuplicadoException;
 import com.curso.grossisports.exception.RecursoNaoEncontradoException;
 import com.curso.grossisports.repository.ContaAcessoRepository;
@@ -33,20 +34,25 @@ public class ContaAcessoService {
     private final ContaAcessoRepository repository;
     private final PessoaService pessoaService;
     private final PasswordEncoder passwordEncoder;
+    private final AuditoriaSegurancaService auditoria;
 
     public ContaAcessoService(
         ContaAcessoRepository repository,
         PessoaService pessoaService,
-        PasswordEncoder passwordEncoder) {
+        PasswordEncoder passwordEncoder,
+        AuditoriaSegurancaService auditoria) {
         this.repository = repository;
         this.pessoaService = pessoaService;
         this.passwordEncoder = passwordEncoder;
+        this.auditoria = auditoria;
     }
 
     /**
      * Criação administrativa: cria a pessoa e a conta na mesma
      * transação, sempre com o perfil OPERADOR. Não aceita pessoa
-     * existente nem perfil de acesso.
+     * existente nem perfil de acesso. O evento {@code CONTA_CRIADA} é
+     * gravado na mesma transação: se a auditoria falhar, a criação é
+     * revertida.
      */
     @Transactional
     @PreAuthorize("hasRole('ADMINISTRADOR')")
@@ -55,7 +61,9 @@ public class ContaAcessoService {
         String email,
         String cpf,
         String login,
-        String senhaAberta) {
+        String senhaAberta,
+        String loginAdministrador,
+        String enderecoOrigem) {
 
         validarSenhaAberta(senhaAberta);
 
@@ -68,8 +76,17 @@ public class ContaAcessoService {
 
         String senhaHash = passwordEncoder.encode(senhaAberta);
 
-        return repository.save(
+        ContaAcesso conta = repository.save(
             new ContaAcesso(pessoa, login, senhaHash));
+
+        auditoria.registrar(
+            TipoEventoSeguranca.CONTA_CRIADA,
+            idDaConta(loginAdministrador),
+            conta.getId(),
+            null,
+            enderecoOrigem);
+
+        return conta;
     }
 
     @Transactional(readOnly = true)
@@ -82,7 +99,10 @@ public class ContaAcessoService {
 
     @Transactional
     public void alterarSenha(
-        String login, String senhaAtual, String novaSenha) {
+        String login,
+        String senhaAtual,
+        String novaSenha,
+        String enderecoOrigem) {
 
         validarSenhaAberta(novaSenha);
 
@@ -101,6 +121,13 @@ public class ContaAcessoService {
         }
 
         conta.alterarSenha(passwordEncoder.encode(novaSenha));
+
+        auditoria.registrar(
+            TipoEventoSeguranca.SENHA_ALTERADA,
+            conta.getId(),
+            conta.getId(),
+            null,
+            enderecoOrigem);
     }
 
     /**
@@ -113,7 +140,8 @@ public class ContaAcessoService {
     public ContaAcesso alterarPerfis(
         Long id,
         Set<PerfilAcesso> novosPerfis,
-        String loginAutenticado) {
+        String loginAutenticado,
+        String enderecoOrigem) {
 
         if (novosPerfis == null || novosPerfis.isEmpty()) {
             throw new IllegalArgumentException(
@@ -138,6 +166,13 @@ public class ContaAcessoService {
 
         conta.substituirPerfis(novosPerfis);
 
+        auditoria.registrar(
+            TipoEventoSeguranca.PERFIS_ALTERADOS,
+            idDaConta(loginAutenticado),
+            conta.getId(),
+            null,
+            enderecoOrigem);
+
         return conta;
     }
 
@@ -151,7 +186,8 @@ public class ContaAcessoService {
     public ContaAcesso alterarStatus(
         Long id,
         StatusContaAcesso status,
-        String loginAutenticado) {
+        String loginAutenticado,
+        String enderecoOrigem) {
 
         if (status == null) {
             throw new IllegalArgumentException(
@@ -180,6 +216,13 @@ public class ContaAcessoService {
             conta.ativar();
         }
 
+        auditoria.registrar(
+            TipoEventoSeguranca.STATUS_ALTERADO,
+            idDaConta(loginAutenticado),
+            conta.getId(),
+            null,
+            enderecoOrigem);
+
         return conta;
     }
 
@@ -207,6 +250,21 @@ public class ContaAcessoService {
             .orElseThrow(() ->
                 new RecursoNaoEncontradoException(
                     "Conta de acesso não encontrada"));
+    }
+
+    /**
+     * Resolve o identificador histórico do ator a partir do login
+     * autenticado. Devolve {@code null} quando o login não corresponde a
+     * uma conta, preservando o evento sem inventar um id.
+     */
+    private Long idDaConta(String login) {
+        if (login == null) {
+            return null;
+        }
+
+        return repository.findByLoginIgnoreCase(login)
+            .map(ContaAcesso::getId)
+            .orElse(null);
     }
 
     private void travarAdministradores() {

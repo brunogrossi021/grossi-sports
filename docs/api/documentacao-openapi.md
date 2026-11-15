@@ -59,6 +59,7 @@ A tabela apresenta as operações identificadas na especificação OpenAPI do pr
 | `/api/autenticacao/refresh` | POST | 200 OK | 400 Bad Request, 401 Unauthorized |
 | `/api/autenticacao/logout` | POST | 204 No Content | 400 Bad Request |
 | `/api/autenticacao/logout-todos` | POST | 204 No Content | 401 Unauthorized |
+| `/api/auditoria-seguranca` | GET | 200 OK | 400 Bad Request, 401 Unauthorized, 403 Forbidden |
 
 **Observação:** os códigos apresentados correspondem às respostas registradas no arquivo OpenAPI. Quando a documentação não apresenta um erro para determinada operação, isso não significa necessariamente que o erro seja impossível; significa apenas que ele não está especificado nesse contrato.
 
@@ -133,6 +134,15 @@ após a introdução do ciclo de refresh token. O login passou a devolver
 versão desatualizada. Detalhes do ciclo em
 [`docs/ciclo-tokens.md`](../ciclo-tokens.md).
 
+Na Aula 17 o contrato foi regenerado a partir de `/v3/api-docs.yaml`
+após a introdução da auditoria e da proteção da autenticação. Surgiu a
+operação somente leitura `GET /api/auditoria-seguranca`, restrita a
+`ADMINISTRADOR`, com paginação, filtro por `tipo` e o esquema
+`EventoSegurancaResponse`. O DTO **não** expõe o `identificadorHash` de
+correlação nem qualquer segredo. As respostas `401 Unauthorized` e
+`403 Forbidden` foram documentadas nessa operação. Detalhes em
+[`docs/auditoria-protecao-autenticacao.md`](../auditoria-protecao-autenticacao.md).
+
 ## 6. Segurança e autenticação
 
 A partir da Aula 13 a API é protegida com Spring Security no modo
@@ -176,6 +186,15 @@ pessoa e a conta de acesso na mesma transação, sempre com o perfil
 `PUT /api/contas-acesso/{id}/perfis`. O cliente não informa `pessoaId`
 nem perfil de acesso no cadastro, o que impede vincular credenciais a
 uma pessoa já existente. As respostas nunca contêm senha ou hash.
+
+A partir da Aula 17 a trilha de auditoria é consultável por
+`GET /api/auditoria-seguranca`, restrito a `ADMINISTRADOR` (política HTTP
+**e** `@PreAuthorize` no serviço). A consulta é somente leitura,
+paginada, ordenada do mais recente para o mais antigo e aceita filtro
+opcional por `tipo`. O `EventoSegurancaResponse` não expõe o
+`identificadorHash` nem segredos. Falhas repetidas de login ativam um
+bloqueio temporário com a mesma resposta `401` genérica; detalhes em
+[`docs/auditoria-protecao-autenticacao.md`](../auditoria-protecao-autenticacao.md).
 
 ### 6.1 Token JWT
 

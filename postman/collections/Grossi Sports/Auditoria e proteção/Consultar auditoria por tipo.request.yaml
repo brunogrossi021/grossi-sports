@@ -1,0 +1,26 @@
+$kind: http-request
+name: Consultar auditoria por tipo
+description: "Restrito a ADMINISTRADOR (Aula 17). Filtra a trilha por tipo de evento (ex.: LOGIN_FALHA) e limita o tamanho da página. Um tipo inexistente responde 400. Requer Bearer de administrador."
+url: http://localhost:8080/api/auditoria-seguranca?tipo=LOGIN_FALHA&size=5
+method: GET
+auth:
+  type: bearer
+  credentials:
+    - key: token
+      value: "{{adminAccessToken}}"
+scripts:
+  - type: afterResponse
+    code: |-
+      pm.test('Filtro por tipo responde 200', function () {
+          pm.response.to.have.status(200);
+      });
+
+      const corpo = pm.response.json();
+
+      pm.test('Todos os eventos são do tipo filtrado', function () {
+          corpo.content.forEach(function (evento) {
+              pm.expect(evento.tipo).to.eql('LOGIN_FALHA');
+          });
+      });
+    language: text/javascript
+order: 4485315013079202

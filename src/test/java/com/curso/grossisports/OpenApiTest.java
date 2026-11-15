@@ -83,6 +83,14 @@ class OpenApiTest {
             .andExpect(jsonPath("$.components.schemas.RefreshTokenRequest")
                 .exists())
             .andExpect(jsonPath("$.components.schemas.TokenResponse").exists())
-            .andExpect(jsonPath("$.components.schemas.ApiError").exists());
+            .andExpect(jsonPath("$.components.schemas.ApiError").exists())
+            .andExpect(jsonPath("$.paths['/api/auditoria-seguranca'].get")
+                .exists())
+            .andExpect(jsonPath("$.components.schemas.EventoSegurancaResponse")
+                .exists())
+            .andExpect(jsonPath(
+                "$.components.schemas.EventoSegurancaResponse.properties"
+                    + ".identificadorHash")
+                .doesNotExist());
     }
 }

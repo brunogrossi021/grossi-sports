@@ -1,0 +1,168 @@
+databaseChangeLog:
+  - changeSet:
+      id: 011-01-create-protecao-autenticacao
+      author: grossi-sports
+      comment: >
+        Contador persistente de falhas de login por hash do identificador
+        (Aula 17). Guarda apenas o hash SHA-256 do login normalizado, a
+        contagem, o início da janela e o fim do bloqueio temporário.
+      changes:
+        - createTable:
+            tableName: protecao_autenticacao
+            columns:
+              - column:
+                  name: id
+                  type: BIGINT
+                  autoIncrement: true
+                  constraints:
+                    primaryKey: true
+                    primaryKeyName: pk_protecao_autenticacao
+                    nullable: false
+              - column:
+                  name: chave_login
+                  type: VARCHAR(64)
+                  constraints:
+                    nullable: false
+                    unique: true
+                    uniqueConstraintName: uk_protecao_autenticacao_chave
+              - column:
+                  name: falhas_consecutivas
+                  type: INTEGER
+                  constraints:
+                    nullable: false
+              - column:
+                  name: janela_iniciada_em
+                  type: TIMESTAMP WITH TIME ZONE
+              - column:
+                  name: bloqueada_ate
+                  type: TIMESTAMP WITH TIME ZONE
+        - sql:
+            sql: >
+              ALTER TABLE protecao_autenticacao
+              ADD CONSTRAINT ck_protecao_autenticacao_falhas
+              CHECK (falhas_consecutivas >= 0)
+      rollback:
+        - dropTable:
+            tableName: protecao_autenticacao
+
+  - changeSet:
+      id: 011-02-create-evento-seguranca
+      author: grossi-sports
+      comment: >
+        Trilha de auditoria estruturada (Aula 17). IDs de ator e alvo são
+        valores históricos, sem associação obrigatória com a conta. O
+        tipo é restrito por CHECK para impedir texto livre.
+      changes:
+        - createTable:
+            tableName: evento_seguranca
+            columns:
+              - column:
+                  name: id
+                  type: BIGINT
+                  autoIncrement: true
+                  constraints:
+                    primaryKey: true
+                    primaryKeyName: pk_evento_seguranca
+                    nullable: false
+              - column:
+                  name: tipo
+                  type: VARCHAR(40)
+                  constraints:
+                    nullable: false
+              - column:
+                  name: ocorrido_em
+                  type: TIMESTAMP WITH TIME ZONE
+                  constraints:
+                    nullable: false
+              - column:
+                  name: ator_conta_id
+                  type: BIGINT
+              - column:
+                  name: alvo_conta_id
+                  type: BIGINT
+              - column:
+                  name: identificador_hash
+                  type: VARCHAR(64)
+              - column:
+                  name: endereco_origem
+                  type: VARCHAR(45)
+        - sql:
+            sql: >
+              ALTER TABLE evento_seguranca
+              ADD CONSTRAINT ck_evento_seguranca_tipo
+              CHECK (tipo IN
+              ('LOGIN_SUCESSO', 'LOGIN_FALHA', 'LOGIN_RECUSADO_BLOQUEIO',
+              'BLOQUEIO_TEMPORARIO_ATIVADO', 'CONTA_CRIADA',
+              'SENHA_ALTERADA', 'PERFIS_ALTERADOS', 'STATUS_ALTERADO',
+              'REFRESH_SUCESSO', 'REFRESH_FALHA', 'LOGOUT', 'LOGOUT_GLOBAL'))
+      rollback:
+        - dropTable:
+            tableName: evento_seguranca
+
+  - changeSet:
+      id: 011-03-index-auditoria-e-protecao
+      author: grossi-sports
+      comment: >
+        Acelera a leitura cronológica, o filtro por tipo e a correlação
+        por identificador na auditoria, além da varredura de bloqueios
+        expirados na proteção.
+      changes:
+        - createIndex:
+            tableName: evento_seguranca
+            indexName: idx_evento_seguranca_ocorrido
+            columns:
+              - column:
+                  name: ocorrido_em
+              - column:
+                  name: id
+        - createIndex:
+            tableName: evento_seguranca
+            indexName: idx_evento_seguranca_tipo_ocorrido
+            columns:
+              - column:
+                  name: tipo
+              - column:
+                  name: ocorrido_em
+        - createIndex:
+            tableName: evento_seguranca
+            indexName: idx_evento_seguranca_identificador
+            columns:
+              - column:
+                  name: identificador_hash
+        - createIndex:
+            tableName: evento_seguranca
+            indexName: idx_evento_seguranca_ator
+            columns:
+              - column:
+                  name: ator_conta_id
+        - createIndex:
+            tableName: evento_seguranca
+            indexName: idx_evento_seguranca_alvo
+            columns:
+              - column:
+                  name: alvo_conta_id
+        - createIndex:
+            tableName: protecao_autenticacao
+            indexName: idx_protecao_autenticacao_bloqueada_ate
+            columns:
+              - column:
+                  name: bloqueada_ate
+      rollback:
+        - dropIndex:
+            tableName: protecao_autenticacao
+            indexName: idx_protecao_autenticacao_bloqueada_ate
+        - dropIndex:
+            tableName: evento_seguranca
+            indexName: idx_evento_seguranca_alvo
+        - dropIndex:
+            tableName: evento_seguranca
+            indexName: idx_evento_seguranca_ator
+        - dropIndex:
+            tableName: evento_seguranca
+            indexName: idx_evento_seguranca_identificador
+        - dropIndex:
+            tableName: evento_seguranca
+            indexName: idx_evento_seguranca_tipo_ocorrido
+        - dropIndex:
+            tableName: evento_seguranca
+            indexName: idx_evento_seguranca_ocorrido

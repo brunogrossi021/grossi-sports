@@ -1,0 +1,24 @@
+$kind: http-request
+name: Login com senha incorreta (teste de bloqueio)
+description: "Rota pública (Aula 17). Envia uma senha incorreta e recebe 401 genérico ('Login ou senha inválidos'). Envie esta requisição 5 vezes: a 5ª ativa o bloqueio temporário e, a partir daí, até a senha correta é recusada com o mesmo 401 durante o lock-duration (15 min por padrão). A resposta nunca revela se o login existe."
+url: http://localhost:8080/api/autenticacao/login
+method: POST
+auth:
+  type: noauth
+body:
+  type: json
+  content: "{\r\n  \"login\": \"{{authLogin}}\",\r\n  \"senha\": \"senha-incorreta-de-teste\"\r\n}"
+scripts:
+  - type: afterResponse
+    code: |-
+      pm.test('Credencial inválida responde 401 genérico', function () {
+          pm.response.to.have.status(401);
+      });
+
+      const corpo = pm.response.json();
+
+      pm.test('Mensagem genérica não revela o motivo', function () {
+          pm.expect(corpo.message).to.eql('Login ou senha inválidos');
+      });
+    language: text/javascript
+order: 4485315013079204

@@ -3,6 +3,7 @@ package com.curso.grossisports.service;
 import com.curso.grossisports.domain.ContaAcesso;
 import com.curso.grossisports.domain.MotivoRevogacaoRefreshToken;
 import com.curso.grossisports.domain.SessaoRefreshToken;
+import com.curso.grossisports.domain.TipoEventoSeguranca;
 import com.curso.grossisports.exception.CredenciaisInvalidasException;
 import com.curso.grossisports.exception.RefreshTokenInvalidoException;
 import com.curso.grossisports.repository.ContaAcessoRepository;
@@ -47,6 +48,7 @@ public class SessaoAutenticacaoService {
     private final ContaAcessoRepository contaRepository;
     private final TokenService tokenService;
     private final RefreshTokenProperties properties;
+    private final AuditoriaSegurancaService auditoria;
     private final Clock clock;
     private final SecureRandom secureRandom = new SecureRandom();
 
@@ -55,12 +57,14 @@ public class SessaoAutenticacaoService {
         ContaAcessoRepository contaRepository,
         TokenService tokenService,
         RefreshTokenProperties properties,
+        AuditoriaSegurancaService auditoria,
         Clock clock) {
 
         this.sessaoRepository = sessaoRepository;
         this.contaRepository = contaRepository;
         this.tokenService = tokenService;
         this.properties = properties;
+        this.auditoria = auditoria;
         this.clock = clock;
     }
 
@@ -109,10 +113,37 @@ public class SessaoAutenticacaoService {
      * <p>{@code noRollbackFor} garante que a revogação gravada nos
      * caminhos de reutilização, expiração e conta inativa sobreviva à
      * {@link RefreshTokenInvalidoException} que encerra a operação — sem
-     * isso, a própria exceção desfaria a evidência de segurança.</p>
+     * isso, a própria exceção desfaria a evidência de segurança. Pelo
+     * mesmo motivo o evento {@code REFRESH_FALHA} é gravado aqui, na
+     * fronteira transacional, antes de a exceção propagar: a resposta
+     * HTTP de erro não apaga a trilha.</p>
      */
     @Transactional(noRollbackFor = RefreshTokenInvalidoException.class)
     public TokensAutenticacao renovar(String refreshToken) {
+        try {
+            Renovacao renovacao = renovarInterno(refreshToken);
+
+            auditoria.registrar(
+                TipoEventoSeguranca.REFRESH_SUCESSO,
+                renovacao.contaId(),
+                renovacao.contaId(),
+                null,
+                null);
+
+            return renovacao.tokens();
+        } catch (RefreshTokenInvalidoException exception) {
+            auditoria.registrar(
+                TipoEventoSeguranca.REFRESH_FALHA,
+                null,
+                null,
+                null,
+                null);
+
+            throw exception;
+        }
+    }
+
+    private Renovacao renovarInterno(String refreshToken) {
         if (refreshToken == null || refreshToken.isBlank()) {
             throw new RefreshTokenInvalidoException();
         }
@@ -174,15 +205,23 @@ public class SessaoAutenticacaoService {
         TokenAcesso acesso = tokenService.emitir(
             autenticacaoDe(conta), sessao.getFamiliaId());
 
-        return new TokensAutenticacao(
+        TokensAutenticacao tokens = new TokensAutenticacao(
             acesso, novoRefreshToken, nova.getExpiraEm());
+
+        return new Renovacao(tokens, conta.getId());
+    }
+
+    /** Resultado interno da renovação: tokens e a conta correlacionada. */
+    private record Renovacao(TokensAutenticacao tokens, Long contaId) {
     }
 
     /**
      * Encerra a família de refresh tokens identificada pelo token
      * informado (logout local). É idempotente e silenciosa: um token
      * desconhecido, já revogado ou expirado não gera erro nem revela se
-     * a sessão existia. O motivo registrado é {@code LOGOUT}.
+     * a sessão existia. O motivo registrado é {@code LOGOUT} e o evento
+     * {@code LOGOUT} só é gravado quando havia uma sessão para revogar,
+     * evitando que tokens aleatórios poluam a trilha.
      */
     @Transactional
     public void encerrarSessao(String refreshToken) {
@@ -192,10 +231,21 @@ public class SessaoAutenticacaoService {
 
         sessaoRepository
             .buscarPorHashParaAtualizacao(hash(refreshToken))
-            .ifPresent(sessao -> sessaoRepository.revogarFamilia(
-                sessao.getFamiliaId(),
-                clock.instant(),
-                MotivoRevogacaoRefreshToken.LOGOUT));
+            .ifPresent(sessao -> {
+                sessaoRepository.revogarFamilia(
+                    sessao.getFamiliaId(),
+                    clock.instant(),
+                    MotivoRevogacaoRefreshToken.LOGOUT);
+
+                Long contaId = sessao.getConta().getId();
+
+                auditoria.registrar(
+                    TipoEventoSeguranca.LOGOUT,
+                    contaId,
+                    contaId,
+                    null,
+                    null);
+            });
     }
 
     /**
@@ -205,10 +255,19 @@ public class SessaoAutenticacaoService {
     @Transactional
     public void encerrarTodasSessoes(String login) {
         contaRepository.findByLoginIgnoreCase(login)
-            .ifPresent(conta -> sessaoRepository.revogarTodasDaConta(
-                conta.getId(),
-                clock.instant(),
-                MotivoRevogacaoRefreshToken.LOGOUT_GLOBAL));
+            .ifPresent(conta -> {
+                sessaoRepository.revogarTodasDaConta(
+                    conta.getId(),
+                    clock.instant(),
+                    MotivoRevogacaoRefreshToken.LOGOUT_GLOBAL);
+
+                auditoria.registrar(
+                    TipoEventoSeguranca.LOGOUT_GLOBAL,
+                    conta.getId(),
+                    conta.getId(),
+                    null,
+                    null);
+            });
     }
 
     private void revogarFamilia(

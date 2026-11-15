@@ -1,6 +1,7 @@
 package com.curso.grossisports;
 
 import com.curso.grossisports.security.AdministradorInicialProperties;
+import com.curso.grossisports.security.ProtecaoAutenticacaoProperties;
 import com.curso.grossisports.security.RefreshTokenProperties;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
 import org.springframework.context.annotation.Bean;
@@ -28,7 +29,8 @@ import org.springframework.security.web.SecurityFilterChain;
 @EnableMethodSecurity
 @EnableConfigurationProperties({
     AdministradorInicialProperties.class,
-    RefreshTokenProperties.class})
+    RefreshTokenProperties.class,
+    ProtecaoAutenticacaoProperties.class})
 public class SecurityConfig {
 
     private static final String CLAIM_PERFIS = "perfis";
@@ -91,6 +93,13 @@ public class SecurityConfig {
                 .permitAll()
                 // (O logout global, POST /api/autenticacao/logout-todos,
                 // exige Bearer e cai na regra /api/** mais abaixo.)
+                // Auditoria de segurança (Aula 17): somente leitura e
+                // somente ADMINISTRADOR. O serviço reafirma a regra com
+                // @PreAuthorize (defesa em profundidade).
+                .requestMatchers(
+                    HttpMethod.GET,
+                    "/api/auditoria-seguranca")
+                .hasRole("ADMINISTRADOR")
                 // Administração de contas: somente ADMINISTRADOR.
                 .requestMatchers(
                     HttpMethod.POST,

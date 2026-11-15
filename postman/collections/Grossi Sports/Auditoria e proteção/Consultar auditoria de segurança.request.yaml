@@ -1,0 +1,30 @@
+$kind: http-request
+name: Consultar auditoria de segurança
+description: "Restrito a ADMINISTRADOR (Aula 17). Consulta a trilha de auditoria em ordem cronológica decrescente, paginada. O DTO não expõe o identificadorHash nem segredos. Requer Bearer de administrador (use 'Login do administrador' antes)."
+url: http://localhost:8080/api/auditoria-seguranca
+method: GET
+auth:
+  type: bearer
+  credentials:
+    - key: token
+      value: "{{adminAccessToken}}"
+scripts:
+  - type: afterResponse
+    code: |-
+      pm.test('Auditoria responde 200', function () {
+          pm.response.to.have.status(200);
+      });
+
+      const corpo = pm.response.json();
+
+      pm.test('Retorna conteúdo paginado', function () {
+          pm.expect(corpo.content).to.be.an('array');
+      });
+
+      pm.test('Não expõe o hash de correlação', function () {
+          if (corpo.content.length > 0) {
+              pm.expect(corpo.content[0]).to.not.have.property('identificadorHash');
+          }
+      });
+    language: text/javascript
+order: 4485315013079201
